@@ -1,0 +1,76 @@
+<!--
+  EGEMED SIM FRAMEWORK — bileşen: Sonuçlar özet şeridi
+  =========================================================
+  Kaynak: cardai/features.js renderResults() — `boxes` dizisi ve "Toplam öğrenme
+  süresi" etiketi (Pulse, Tur 1 — 18 Eylül 2026 metin düzeltmesi).
+
+  NEDEN
+  -----
+  - Dört kutu (Değerlendirme) / üç kutu (Uygulama oturumu, süre kutusu yok):
+    Toplam puan (halka grafik, yeşil/kırmızı), Durum (eşik bilgisiyle birlikte,
+    "Durum (eşik 80)" gibi — eşik değeri her zaman görünür, gizli kural olmaz),
+    "Toplam öğrenme süresi" (yalnız Değerlendirme'de; skorlamayı ETKİLEMEZ, yalnız
+    bilgi amaçlıdır — Pulse'ta önceki kısa etiket "Süre" idi, "hangi sürenin
+    ölçüldüğü" belirsizdi; "Toplam öğrenme süresi" olarak açıldı), Soru/Vaka sayısı.
+  - Halka grafik (SVG) yüzdeyi HEM sayısal (`<b>{{PUAN}}</b>`) HEM görsel
+    (dolgu oranı) olarak gösterir — çift kodlama, hızlı tarama sağlar.
+  - `resultsVariant` (quiz/case) AÇIKÇA seçilir: aynı şablon iki farklı veri
+    kümesiyle doldurulur ama hangi varyantın gösterildiği HER ZAMAN başlıktan
+    ("Değerlendirme Tamamlandı" / "Vaka Raporu") ve kutu sayısından bellidir —
+    kullanıcı yanlışlıkla vaka puanının LMS'ye yazıldığını sanmaz (vaka puanı
+    LMS'ye YAZILMAZ, yalnız gösterilir).
+
+  PULSE'TA NEREDE
+  ----------------
+  cardai/features.js: `renderResults()` fonksiyonu, `boxes` dizisi (satır ~165),
+  `if(section==='quiz')boxes.push(...'Toplam öğrenme süresi'...)`.
+
+  ÜRÜN-BAĞIMSIZ KULLANIM
+  ------------------------
+  {{PUAN}}, {{GECTI_MI}}, {{ESIK}}, {{SURE_METNI}}, {{MADDE_SAYISI}},
+  {{MADDE_TERIMI}} (Pulse: "Soru sayısı"/"Vaka sayısı").
+-->
+<div class="results-summary-strip">
+  <div class="rs-box">
+    <div class="rs-ring-sm {{GECTI_MI ? 'pass' : 'fail'}}">
+      <svg viewBox="0 0 80 80">
+        <circle class="track" cx="40" cy="40" r="34" fill="none" stroke-width="8"/>
+        <circle class="prog" cx="40" cy="40" r="34" fill="none" stroke-width="8" stroke-linecap="round"
+          stroke-dasharray="{{PUAN/100*2*PI*34}} 999" transform="rotate(-90 40 40)"/>
+      </svg>
+      <b>{{PUAN}}</b>
+    </div>
+    <span class="rs-lbl">Toplam puan</span>
+  </div>
+
+  <div class="rs-box">
+    <div class="rs-status {{GECTI_MI ? 'pass' : 'fail'}}">{{GECTI_MI ? '✓ Başarılı' : '✕ Hedefin altında'}}</div>
+    <span class="rs-lbl">Durum (eşik {{ESIK}})</span>
+  </div>
+
+  <!-- Yalnız Değerlendirme varyantında (Uygulama/vaka oturumunda bu kutu yok) -->
+  <div class="rs-box">
+    <div class="rs-num">⏱ {{SURE_METNI}}</div>
+    <span class="rs-lbl">Toplam öğrenme süresi</span>
+  </div>
+
+  <div class="rs-box">
+    <div class="rs-num">{{MADDE_SAYISI}}</div>
+    <span class="rs-lbl">{{MADDE_TERIMI}}</span>
+  </div>
+</div>
+
+<style>
+/* Kaynak: cardai/styles.css .rs-box, .rs-ring-sm, .rs-status, .rs-lbl (özet) */
+.results-summary-strip{display:flex;gap:16px;flex-wrap:wrap}
+.rs-box{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:110px}
+.rs-ring-sm{position:relative;width:80px;height:80px}
+.rs-ring-sm svg{width:100%;height:100%}
+.rs-ring-sm .track{stroke:var(--border)}
+.rs-ring-sm.pass .prog{stroke:var(--green-600)} .rs-ring-sm.fail .prog{stroke:var(--red-500)}
+.rs-ring-sm b{position:absolute;inset:0;display:grid;place-items:center;font-size:var(--fs-xl)}
+.rs-status{font-weight:700;font-size:var(--fs-lg)}
+.rs-status.pass{color:var(--green-600)} .rs-status.fail{color:var(--red-500)}
+.rs-lbl{font-size:var(--fs-xs);color:var(--ink-600);text-transform:uppercase;letter-spacing:.4px}
+.rs-num{font-size:var(--fs-xl);font-weight:700;color:var(--ink-800)}
+</style>

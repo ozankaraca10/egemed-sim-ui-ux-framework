@@ -1,0 +1,61 @@
+<!--
+  EGEMED SIM FRAMEWORK — bileşen: Geri bildirim (doğru/yanlış + çeldirici açıklaması)
+  ========================================================================================
+  Kaynak: cardai/features.js caseFeedbackMarkup(item, answer) + FEEDBACK_ICONS
+  (Uygulama modu; Değerlendirme modunda madde bazlı karşılığı Sonuçlar ekranındaki
+  "Soru raporu" satır detayında kullanılır — bkz. components/results-summary.html).
+
+  NEDEN
+  -----
+  - Büyük ✓/✗ ikonu + "Doğru!"/"Yanlış" başlığı: geri bildirimin sonucunu OKUMADAN,
+    bir bakışta (renk + ikon) anlamak mümkün olmalı — metne bağımlı olmayan ikinci
+    bir kanal (renk körü kullanıcılar için ikon+metin birlikte kullanılır, yalnız
+    renk kullanılmaz).
+  - Yanlış cevapta ÜÇ bilgi sırayla: (1) "Yanıtınız: X" — kullanıcı ne seçtiğini
+    hatırlar, (2) "Doğru yanıt: Y" (yeşil) — doğru bilgi ayrı vurgulanır, (3) doğru
+    seçeneğin açıklaması + "Seçtiğiniz seçenek neden değil: …" — YALNIZ seçilen
+    çeldiricinin açıklaması gösterilir, diğer 3 çeldirici açıklaması BURADA
+    gösterilmez (bilgi yükünü azaltır; tam liste yalnız Sonuçlar → Soru raporu
+    genişleyen satırında, `optionFeedback()` ile, tüm 5 seçenek için verilir).
+  - Doğru cevapta yalnız doğru seçeneğin açıklaması gösterilir — "neden diğerleri
+    yanlış" bilgisi doğru cevap verildiğinde gereksizdir (bilişsel yük azaltma).
+
+  PULSE'TA NEREDE
+  ----------------
+  cardai/features.js: `caseFeedbackMarkup(item,answer)` (bu bileşen),
+  `FEEDBACK_ICONS` (✓/✗ SVG'leri), `optionFeedback(item,answer)` (cardai/app.js —
+  TÜM 5 seçeneğin açıklamasını listeleyen, yalnız Sonuçlar ekranında kullanılan
+  ayrı fonksiyon — vaka ekranındaki anlık geri bildirimle KARIŞTIRILMAZ).
+
+  ÜRÜN-BAĞIMSIZ KULLANIM
+  ------------------------
+  {{DOGRU_MU}}, {{SECILEN_HARF}}/{{SECILEN_METIN}}, {{DOGRU_HARF}}/{{DOGRU_METIN}},
+  {{DOGRU_ACIKLAMA}}, {{SECILEN_CELDIRICI_ACIKLAMA}}.
+-->
+
+<!-- Doğru yanıt -->
+<div class="feedback-head good">
+  <span class="ic good" aria-hidden="true">{{CHECK_SVG}}</span>
+  <h2>Doğru!</h2>
+</div>
+<p class="feedback-text">{{DOGRU_ACIKLAMA}}</p>
+
+<!-- Yanlış yanıt -->
+<div class="feedback-head bad">
+  <span class="ic bad" aria-hidden="true">{{X_SVG}}</span>
+  <h2>Yanlış</h2>
+</div>
+<p class="feedback-verdict">Yanıtınız: {{SECILEN_HARF}}. {{SECILEN_METIN}}</p>
+<p class="feedback-verdict feedback-verdict-good">Doğru yanıt: {{DOGRU_HARF}}. {{DOGRU_METIN}}</p>
+<p class="feedback-text">{{DOGRU_ACIKLAMA}}</p>
+<p class="feedback-text">Seçtiğiniz seçenek neden değil: {{SECILEN_CELDIRICI_ACIKLAMA}}</p>
+
+<style>
+/* Kaynak: cardai/styles.css .feedback-head, .feedback-verdict, .feedback-text */
+.feedback-head{display:flex;align-items:center;gap:10px}
+.feedback-head h2{margin:0;font-size:var(--fs-xl)}
+.feedback-head.good .ic{color:var(--green-500)} .feedback-head.bad .ic{color:var(--red-500)}
+.feedback-verdict{margin:6px 0;font-size:var(--fs-md)}
+.feedback-verdict-good{color:var(--green-500);font-weight:700}
+.feedback-text{margin:6px 0;color:var(--ink-200,#c3ddf8);font-size:var(--fs-md);line-height:1.5}
+</style>

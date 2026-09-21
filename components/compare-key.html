@@ -1,0 +1,76 @@
+<!--
+  EGEMED SIM FRAMEWORK — bileşen: Karşılaştırma göstergesi (normal referans anahtarı)
+  =========================================================================================
+  Kaynak: cardai/index.html #compareKey (İnceleme sahnesi) + cardai/features.js
+  caseCompareKey (Uygulama/Değerlendirme, `.compare-key.inline`) + cardai/app.js
+  renderECG/drawItemECG referans çizim mantığı (Pulse, Tur 2 — 19 Eylül 2026).
+
+  NEDEN
+  -----
+  - "Normalle karşılaştır" açıkken referans çizgi KESİK (dashed) çizilir, ana kayıt
+    DÜZ (solid) çizilir. Kesiklik, iki çizginin AYNI renk ailesinde (mavi) olsa
+    bile birbirine karışmamasını sağlayan ikinci bir görsel kanaldır (yalnız renk
+    farkına güvenilmez — renk körlüğü ve düşük kontrastlı ekranlar için).
+  - Gösterge (`.compare-key`) referans çizgiyle AYNI stili (kesik mavi çizgi
+    örneği + "Normal referans" metni) taşır — kullanıcı sahnedeki çizgiyi
+    göstergedeki örnekle eşleştirip "hangisi referans" sorusuna kendi cevap verir.
+  - Referans ÇİZGİ OFSETSİZ olmalı: vaka/soru kanvasında (Tur 2 düzeltmesi
+    öncesi) referans çizgi ana kayıttan farklı bir taban çizgisine (`refBase =
+    base + mv*.9`) çizilip GERÇEKTEN OLMAYAN bir dikey kaymayı ima ediyordu. Aynı
+    taban çizgisini kullanmak (`base`, ofset yok), karşılaştırmanın yalnız
+    MORFOLOJİ farkını gösterip sahte bir voltaj/konum farkı önermemesini sağlar.
+    Kabul testi: qa/mode_flow_audit.mjs "G3-case-reference-same-baseline"
+    (kanvasın alt %25'lik diliminde mavi piksel OLMAMALI — referans kaymışsa
+    oraya taşar).
+  - İnceleme sahnesindeki `#compareKey` SABİT KONUMLU (`position:absolute`,
+    kanvasın üstünde köşede); vaka/soru kanvasındaki `.compare-key.inline`
+    araç çubuğunun İÇİNDE akan bir öğedir (`position:static`) — çünkü o
+    kanvas daha küçük ve köşe yerleşimi metinle çakışır.
+
+  PULSE'TA NEREDE
+  ----------------
+  cardai/app.js: `renderECG()` içindeki `trace(models.normal,'rgba(46,141,247,.85)',1.5,[6,4])`
+  çağrısı (dash deseni `[6,4]`) ve `drawItemECG()` içindeki compare bloğu
+  (`x.setLineDash([6,4])`, `refBase` OFSETİ KALDIRILDI — artık `base` kullanılıyor).
+  CSS: cardai/styles.css `.compare-key i{border-top:2px dashed var(--blue-500)}`,
+  `.compare-key.inline{position:static;padding:0}`.
+
+  ÜRÜN-BAĞIMSIZ KULLANIM
+  ------------------------
+  "Normal referans" metni ürüne göre değişebilir (ör. Ausculta: "Normal ses
+  referansı"); dash deseni ve "ofsetsiz taban" kuralı SABİT kalır.
+-->
+
+<!-- İnceleme sahnesi — sabit konumlu köşe göstergesi -->
+<div class="compare-key" id="compareKey" hidden><i></i> Normal referans</div>
+
+<!-- Vaka/soru kanvası — araç çubuğu içinde akan gösterge -->
+<span class="compare-key inline" id="caseCompareKey" hidden><i></i> Normal referans</span>
+
+<style>
+/* Kaynak: cardai/styles.css .compare-key, .compare-key.inline, .compare-key i */
+.compare-key{position:absolute;right:8px;top:24px;padding:2px 4px;border-radius:var(--r-xs);
+  background:rgba(255,255,255,.94);color:var(--blue-700);font:var(--fs-xs) ui-monospace,monospace;
+  pointer-events:none}
+.compare-key i{display:inline-block;width:14px;border-top:2px dashed var(--blue-500);
+  margin-right:4px;vertical-align:middle}
+.compare-key.inline{position:static;padding:0} /* araç çubuğu akışında, köşeye sabitlenmez */
+</style>
+
+<!--
+  Çizim tarafı (Kaynak: cardai/app.js renderECG / drawItemECG) — referans AYNI
+  tabanda, KESİK çizgiyle:
+
+  // İnceleme sahnesi (renderECG):
+  if (state.compare && state.mode !== 'normal') {
+    trace(models.normal, 'rgba(46,141,247,.85)', 1.5, [6, 4]); // dash=[6,4], ofset YOK
+  }
+  trace(model, state.mode === 'normal' ? '#144f67' : '#b92036', 1.8); // ana kayıt: düz çizgi
+
+  // Vaka/soru kanvası (drawItemECG) — referans AYNI `base` değişkenini kullanır:
+  if (compare) {
+    const reference = new CardiacModel('normal');
+    x.strokeStyle = 'rgba(46,141,247,.85)'; x.lineWidth = 1.5; x.setLineDash([6, 4]);
+    // y = base - reference.signal(t, lead) * mv   ← `base`, ana kayıtla AYNI (ofset yok)
+  }
+-->

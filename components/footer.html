@@ -1,0 +1,69 @@
+<!--
+  EGEMED SIM FRAMEWORK — bileşen: Footer
+  ==========================================
+  Kaynak: cardai/index.html <footer class="eg-footer"> (satır 133) + cardai/styles.css
+  `.eg-footer`, `.footer-*` + Tur 1 "footer .app padding'ini negatif margin ile taşma".
+
+  NEDEN
+  -----
+  - Tek satır, ORTALANMIŞ marka + kurum metni: aile genelinde "kim yaptı" bilgisi
+    her ekranda aynı biçimde görünür (landing, mod seçimi, hakkında, sonuçlar,
+    uygulama ekranı).
+  - Kademeli kısalma (bkz. CSS): dar ekranda önce sağ atıf, sonra kurum cümlesi,
+    sonra alt başlık, en son telif metni gizlenir — mobilde yalnız logo +
+    "EGEMED {{URUN_ADI}}™" kalır. Bu, footer'ın HER genişlikte tek satırda
+    kalmasını garanti eder (yatay taşma riski sıfırlanır).
+  - `.app>.eg-footer{margin:0 -18px}` (mobilde `-14px`): `.app` konteyneri yan
+    boşluk (`padding:0 18px`) uyguluyor; footer bu boşluğu NEGATİF margin ile telafi
+    ederek konteynerin kendisi kadar değil, VİEWPORT kadar genişler — böylece footer
+    görsel olarak "kenardan kenara" (edge-to-edge) görünür, uygulamanın geri kalanı
+    kenar boşluklu kalır. Bu ayrım olmadan footer içerikle aynı dar sütunda kalır ve
+    Ausculta/landing'deki tam-genişlik footer görünümünden sapar.
+    Kabul testi: qa/mode_flow_audit.mjs "F10-footer-edge-to-edge" (1366 ve 390px'te
+    `footer.left===0` ve `footer.right===innerWidth`).
+  - Solda ürünün KENDİ favicon'u (26×26) kullanılır — kurum mührü değil; kurum
+    mührü yalnız Hakkında sayfasındaki Kurum kartında görünür.
+
+  PULSE'TA NEREDE
+  ----------------
+  cardai/index.html satır 133 (uygulama footer) + satır 4 içindeki `#landingFooter`
+  (landing.js `footerSource.children` klonlanarak doldurulur — TEK kaynaktan
+  kopyalanır, iki metin birbirinden ayrışmasın diye). CSS: cardai/styles.css
+  `.eg-footer`, `.app>.eg-footer{margin:0 -18px}`,
+  `@media(max-width:999px){...}` içinde `.app>.eg-footer{margin:0 -14px}`.
+
+  ÜRÜN-BAĞIMSIZ KULLANIM
+  ------------------------
+  {{URUN_ADI}}, {{URUN_ALT_BASLIK}} (ör. "Etkileşimli EKG Simülatörü" /
+  "Oskültasyon Simülatörü" / [Opaca: belirlenecek]), {{KURUM_ADI}}, {{YIL}},
+  {{FOOTER_SAG_METNI}} (ör. "Sinyaller sentetiktir · klinik tanı için kullanılmaz").
+-->
+<footer class="eg-footer">
+  <div class="footer-left">
+    <img class="footer-seal" src="assets/egemed-{{urun-slug}}-favicon.png" alt="">
+    <span class="footer-text">
+      <span class="footer-brand">EGEMED {{URUN_ADI}}<sup class="tm">™</sup></span>
+      <span class="footer-sub"> {{URUN_ALT_BASLIK}}</span>
+      <span class="footer-inst">, {{KURUM_ADI}} tarafından geliştirilmiştir.</span>
+      <span class="footer-copy"> Tüm hakları saklıdır © {{YIL}}</span>
+    </span>
+  </div>
+  <span class="footer-right"><span class="footer-signal-note">{{FOOTER_SAG_METNI}}</span></span>
+</footer>
+
+<style>
+/* Kaynak: cardai/styles.css .eg-footer + Tur 1 negatif margin taşması */
+.eg-footer{display:flex;align-items:center;justify-content:center;gap:12px;position:relative;z-index:1;background:var(--card);color:var(--ink-600);height:var(--foot-h);flex-shrink:0;padding:0 18px;border-top:1px solid var(--border);font-size:var(--fs-sm)}
+.app>.eg-footer{margin:0 -18px} /* .app'in yan padding'ini iptal edip kenardan kenara taşır */
+.footer-left{display:flex;align-items:center;gap:8px;min-width:0;justify-content:center;flex:1 1 auto}
+.footer-seal{width:26px;height:26px;display:block;flex-shrink:0}
+.footer-brand{font-weight:800;color:var(--navy-800)}
+.footer-sub,.footer-copy,.footer-inst,.footer-signal-note{color:var(--ink-600)}
+/* Kademeli kısalma: dar ekranda sırayla sağ atıf → kurum cümlesi → alt başlık → telif gizlenir */
+@media(max-width:1280px){.footer-right{display:none}}
+@media(max-width:1100px){.footer-inst{display:none}}
+@media(max-width:860px){.footer-sub{display:none}}
+@media(max-width:720px){.footer-copy{display:none}}
+/* Mobilde .app padding'i 14px'e düştüğü için negatif margin de eşleşmeli */
+@media(max-width:999px){.app>.eg-footer{margin:0 -14px}}
+</style>

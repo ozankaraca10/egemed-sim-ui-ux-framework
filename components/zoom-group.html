@@ -1,0 +1,91 @@
+<!--
+  EGEMED SIM FRAMEWORK — bileşen: Zoom grubu (vaka/soru kanvası büyütme)
+  ===========================================================================
+  Kaynak: cardai/app.js ITEM_ZOOM_STEPS, itemZoom, syncZoomUI, bindItemZoom
+  (Pulse, Tur 3 — 21 Eylül 2026); cardai/styles.css `.zoom-group`, `.zoom-level`.
+
+  NEDEN
+  -----
+  - Sabit basamaklar (1× / 1,25× / 1,5× / 2×) — serbest/sürekli zoom DEĞİL. Sabit
+    basamak seçimi iki nedenle tercih edilir: (1) her basamakta kayıt/ölçek
+    çizgileri yeniden hesaplanıp okunabilir kalır (serbest zoom ara değerlerde
+    çizgi kalınlığı/etiket çakışması yaratabilir), (2) kaliper gibi ÖLÇÜM
+    araçlarıyla tutarlılık test edilebilir hâle gelir (bkz. aşağıdaki "kaliper
+    uyumlu" maddesi) — sabit basamak sayısı sonlu olduğu için her biri ayrı ayrı
+    doğrulanabilir.
+  - "Kaliper uyumlu": zoom seviyesi değiştiğinde kaliperin piksel-başına-zaman
+    (`pps`) hesaplaması ZOOM ÇARPANINI içermeli; aksi hâlde 2× büyütülmüş bir
+    kayıtta kaliperle yapılan ölçüm YANLIŞ süre/genlik döndürür. Kaynak
+    kodda: `pps = (width-32)/item.ecg.seconds*zoom` (drawItemECG) ve
+    `caseGeometry()` aynı `zoom` çarpanını kullanır — iki fonksiyon SENKRON
+    olmalıdır, biri güncellenip diğeri unutulursa kaliper ölçümü zoom'dan
+    bağımsız (yanlış) kalır.
+  - Sınır düğmeleri (`disabled`): 1×'te "−" pasif, 2×'te "+" pasif — kullanıcı
+    sınırda olduğunu görsel olarak anlar, sessizce hiçbir şey olmaz durumu yaşanmaz.
+  - Bu grup yalnız VAKA/SORU kanvasında vardır; İnceleme (sim) sahnesindeki büyük
+    kanvasın kendi sabit 1,25× büyütmesi vardır ve KULLANICI KONTROLLÜ DEĞİLDİR
+    (bkz. docs/04-etkilesim-ve-erisilebilirlik.md "Zoom" bölümü — iki farklı zoom
+    mekanizması karıştırılmamalı).
+
+  PULSE'TA NEREDE
+  ----------------
+  cardai/app.js: `ITEM_ZOOM_STEPS=[1,1.25,1.5,2]`, `itemZoom={case:1,quiz:1}`,
+  `syncZoomUI(section)` (etiket + disabled senkronu), `bindItemZoom(section)`
+  (düğme tıklama → `itemZoom[section]` güncelle → `drawItemECG` yeniden çiz),
+  `drawItemECG` içindeki `zoom=itemZoom[section]||1` satırı. Kaliper tarafı:
+  cardai/features.js `caseGeometry()` — `pps=(width-32)/item.ecg.seconds*(C.itemZoom.case||1)`.
+
+  ÜRÜN-BAĞIMSIZ KULLANIM
+  ------------------------
+  {{BOLUM}} = "case"/"quiz" (Pulse) — ürün kendi bölüm adını kullanır;
+  zoom basamakları [1,1.25,1.5,2] SABİT tutulur (aile tutarlılığı).
+-->
+<span class="zoom-group" role="group" aria-label="{{ALAN_ADI}} yakınlaştırma">
+  <button type="button" class="tool-btn" data-zoom="out" aria-label="Uzaklaştır">−</button>
+  <output class="zoom-level" id="{{BOLUM}}ZoomLevel">1×</output>
+  <button type="button" class="tool-btn" data-zoom="in" aria-label="Yakınlaştır">+</button>
+</span>
+
+<style>
+/* Kaynak: cardai/styles.css .zoom-group, .zoom-level (Tur 3 eklentisi) */
+.zoom-group{display:inline-flex;align-items:center;gap:4px}
+.zoom-level{min-width:44px;text-align:center;font:var(--fs-xs) ui-monospace,monospace}
+</style>
+
+<!--
+  JS iskeleti (Kaynak: cardai/app.js) — zoom basamakları + kaliper senkronu:
+
+  const ITEM_ZOOM_STEPS = [1, 1.25, 1.5, 2];
+  const itemZoom = { case: 1, quiz: 1 };
+  const zoomLabel = z => String(z).replace('.', ',') + '×';
+
+  function syncZoomUI(section) {
+    const out = $(section + 'ZoomLevel'); if (!out) return;
+    out.textContent = zoomLabel(itemZoom[section]);
+    const group = out.closest('.zoom-group'); if (!group) return;
+    const idx = ITEM_ZOOM_STEPS.indexOf(itemZoom[section]);
+    group.querySelectorAll('[data-zoom]').forEach(btn => {
+      btn.disabled = btn.dataset.zoom === 'out' ? idx <= 0 : idx >= ITEM_ZOOM_STEPS.length - 1;
+    });
+  }
+
+  function bindItemZoom(section) {
+    const out = $(section + 'ZoomLevel'), group = out && out.closest('.zoom-group');
+    if (!group) return;
+    group.querySelectorAll('[data-zoom]').forEach(btn => btn.onclick = () => {
+      const idx = ITEM_ZOOM_STEPS.indexOf(itemZoom[section]);
+      const next = clamp(idx + (btn.dataset.zoom === 'in' ? 1 : -1), 0, ITEM_ZOOM_STEPS.length - 1);
+      itemZoom[section] = ITEM_ZOOM_STEPS[next];
+      syncZoomUI(section);
+      drawItemECG(section); // zoom değişince kanvas YENİDEN çizilir
+    });
+    syncZoomUI(section);
+  }
+
+  // Çizim tarafında zoom çarpanı pps hesabına girer (Kaynak: cardai/app.js drawItemECG):
+  // const zoom = itemZoom[section] || 1;
+  // const pps = (width - 32) / item.ecg.seconds * zoom;
+
+  // Kaliper tarafı AYNI çarpanı kullanmalı (Kaynak: cardai/features.js caseGeometry):
+  // const pps = (width - 32) / item.ecg.seconds * (C.itemZoom.case || 1);
+-->

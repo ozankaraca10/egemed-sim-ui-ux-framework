@@ -1,0 +1,78 @@
+<!--
+  EGEMED SIM FRAMEWORK — bileşen: Header / Topbar (marka + slogan + bağlam + uiNote)
+  =======================================================================================
+  Kaynak: cardai/index.html <header class="topbar"> (EGEMED Pulse, satır 5-14) + Tur 3
+  (üst çubuk logosu beyaz, marka sloganı) + Tur 1 (#uiNote bildirim bölgesi).
+
+  NEDEN
+  -----
+  - Marka bloğu (ikon + "EGEMED" + "Ürün™") + yanında ÜRÜN SLOGANI (`.eg-brand-tag`):
+    ailenin her üyesi aynı yerde kısa bir alt başlıkla ne olduğunu söyler
+    (Pulse: "Etkileşimli EKG Simülatörü"). Dar ekranda (≤1024px) slogan gizlenir —
+    marka adı ile mod çipi arasında yer çakışmasını önler.
+  - Üst çubuk logosu `filter:brightness(0) invert(1)` ile BEYAZA çevrilir: kaynak PNG
+    şeffaf lacivert bir amblem; koyu lacivert-mavi degrade zemin üzerinde okunaklı
+    olması için (footer'daki AYNI logo bu filtreyi kullanmaz — orta zemin beyaz).
+  - `#uiNote`: tarayıcı kısıtlamaları (ör. tam ekran reddi) gibi geçici hataların
+    gösterildiği TEK yer; `alert()`/`window.confirm()` KULLANILMAZ (bkz.
+    docs/04-etkilesim-ve-erisilebilirlik.md). `role="status"` + 3 sn sonra
+    kendiliğinden gizlenir (bkz. snippets/toggleFullscreen.js showUiNote).
+  - `.eg-header-context` iki `.spacer` arasında ORTALANIR: bağlam bilgisi (ilerleme
+    metni + ince çubuk + mod çipi) her zaman header'ın merkezinde durur, marka ve
+    sağ araç grubu genişliği ne olursa olsun kayması önlenir.
+  - "Mod Değiştir" düğmesi `hide-mobile`: ≤720px'te ikon dahi gizlenir çünkü mod
+    değişimi mobilde marka bağlantısına (`#brandHome`) taşınır (bkz. docs/02).
+
+  PULSE'TA NEREDE
+  ----------------
+  cardai/index.html satır 5–14 (uygulama topbar); cardai/features.js
+  `renderHeader(view)` (çip metni/rengi), `toggleFullscreen`/`syncFullscreen`
+  (fullscreenBtn), `showUiNote` (#uiNote). CSS: cardai/styles.css
+  `.topbar .eg-brand-icon{filter:brightness(0) invert(1)}`, `.eg-brand-tag`.
+
+  ÜRÜN-BAĞIMSIZ KULLANIM
+  ------------------------
+  {{URUN_ADI}} = "Pulse" | "Ausculta" | "Opaca"; {{URUN_SLOGANI}} = ürünün alt
+  başlığı; {{MOD_CIP_SINIFI}} = learn|practice|assessment; {{BAGLAM_METNI}} =
+  görünüme göre değişen ilerleme metni (bkz. docs/02-ekranlar.md tablo).
+-->
+<header class="topbar">
+  <a class="eg-brand" id="brandHome" href="#landingPage" aria-label="EGEMED {{URUN_ADI}} ana sayfa">
+    <img class="eg-brand-icon" src="assets/egemed-{{urun-slug}}-favicon.png" alt="">
+    <span class="eg-brand-copy"><small>EGEMED</small><strong>{{URUN_ADI}}<sup class="tm" aria-hidden="true">™</sup></strong></span>
+    <span class="eg-brand-tag">{{URUN_SLOGANI}}</span>
+  </a>
+  <div class="spacer"></div>
+  <div class="eg-header-context" id="headerContext" hidden>
+    <span class="ctx-progress" id="progressText">{{BAGLAM_METNI}}</span>
+    <span class="ctx-bar"><i id="progressBar"></i></span>
+    <span class="mode-chip {{MOD_CIP_SINIFI}}" id="modeChip">{{MOD_ADI}}</span>
+  </div>
+  <div class="spacer"></div>
+  <span class="sr-status" id="retrySave"><span id="saveStatus" role="status">Bağımsız kullanım</span></span>
+  <!-- Geçici hata/bilgi bildirimi: alert() değil, bu bölge (docs/04). -->
+  <span class="sr-status" id="uiNote" role="status" hidden></span>
+  <button class="eg-navbtn hide-mobile" id="modeSwitch" type="button" aria-label="Mod seçim ekranına dön" title="Mod seçim ekranına dön">
+    <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h13l-3-3"/><path d="M20 16H7l3 3"/></svg>
+    <span class="lbl">Mod Değiştir</span>
+  </button>
+  <button class="eg-navbtn hide-mobile" id="fullscreenBtn" type="button" aria-label="Tam ekrana geç" title="Tam ekran (F)">
+    <svg class="ico" id="fullscreenIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+  </button>
+  <span class="divider-v" aria-hidden="true"></span>
+  <button class="eg-navbtn" id="helpBtn" type="button" title="Yardım ve kısayollar">
+    <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.4 2.34c-.9.34-1.4 1-1.4 1.66"/><circle cx="11.9" cy="16.8" r=".4" fill="currentColor"/></svg>
+    <span class="lbl">Yardım</span>
+  </button>
+  <button class="eg-navbtn" id="aboutBtn" type="button" title="Hakkında">
+    <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><circle cx="12" cy="7.5" r=".5" fill="currentColor"/></svg>
+    <span class="lbl">Hakkında</span>
+  </button>
+</header>
+
+<style>
+/* Kaynak: cardai/styles.css .topbar .eg-brand-icon, .eg-brand-tag */
+.topbar .eg-brand-icon{filter:brightness(0) invert(1)} /* logo beyaza döner — koyu zemin için */
+.eg-brand-tag{border-left:1px solid rgba(255,255,255,.35);padding-left:10px;margin-left:4px;font-size:var(--fs-sm);opacity:.9;white-space:nowrap}
+@media(max-width:1024px){.eg-brand-tag{display:none}} /* dar ekranda slogan gizlenir */
+</style>

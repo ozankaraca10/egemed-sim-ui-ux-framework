@@ -1,0 +1,96 @@
+<!--
+  EGEMED SIM FRAMEWORK — bileşen: Koyu soru kartı (Uygulama + Değerlendirme)
+  ===============================================================================
+  Kaynak: cardai/features.js questionCardMarkup (Uygulama modu, tek soru) ve
+  cardai/app.js renderQuiz() form.innerHTML şablonu (Değerlendirme modu, 10 soru).
+
+  NEDEN
+  -----
+  - Kart KOYU (lacivert degrade `--navy-900`→`--navy-800`): sağ sütunun "karar
+    anı" bölgesini sol sütundaki (EKG/ses/görüntü) sahneden görsel olarak ayırır;
+    kullanıcı "şimdi yanıt veriyorum" bağlamını net hisseder.
+  - `role="radio" aria-checked` + görünür `.opt-radio` dairesi: native
+    `<input type=radio>` yerine ÖZEL stil, ama ARIA semantiği korunur — ok
+    tuşuyla gezinme ve ekran okuyucu uyumluluğu native radio grubuyla aynı kalır.
+  - Uygulama modunda "Yanıtla →" sonrası AYNI kartta anlık geri bildirim
+    (bkz. components/feedback.html) gösterilir; Değerlendirme modunda GÖSTERİLMEZ
+    (yalnız kart içi "Sonraki soru →" ilerler) — bu FARK bilinçlidir: Uygulama
+    formatif (öğrenme), Değerlendirme sumatif (ölçme) amaçlıdır (bkz.
+    docs/03-mod-akisi-ve-pedagoji.md "Geri bildirim yapısı").
+  - Değerlendirme kartında ek olarak: eyebrow "DEĞERLENDİRME · SORU N/10" + nokta
+    ilerlemesi (`.q-dots`, her nokta done/now durumunda), toolbar'daki
+    "Yanıtları değerlendir (n/10)" tüm sorular gönderilmeden `disabled` kalır ve
+    10/10'da OTOMATİK olarak değerlendirmeye geçilir (bkz. docs/03).
+  - 44px dokunma hedefi: `.opt` etiketi tüm satırı kaplar (yalnız daire değil),
+    mobilde yanlışlıkla komşu seçeneğe dokunmayı önler.
+
+  PULSE'TA NEREDE
+  ----------------
+  cardai/features.js: `questionCardMarkup(item, answer, submitted, last)`
+  (Uygulama — id `caseQuestionCard`). cardai/app.js: `renderQuiz()` (Değerlendirme
+  — id `quizForm` içinde, her soru yeniden render edilir), `submitQuizItem()`
+  (10/10'da otomatik `grade()` çağrısı).
+
+  ÜRÜN-BAĞIMSIZ KULLANIM
+  ------------------------
+  {{EYEBROW}} = madde türüne göre etiket (Pulse: "EKG YORUMU"/"DEĞERLENDİRME · SORU N/10");
+  {{SORU_METNI}}, {{SECENEKLER}} (5 öğe varsayılan — ürün farklı sayı kullanabilir),
+  {{GONDERILDI_MI}}, {{SON_MU}}.
+-->
+
+<!-- Uygulama modu — tek soru, anlık geri bildirim aynı kartta -->
+<article class="q-card-dark" id="caseQuestionCard" aria-labelledby="caseQuestionTitle">
+  <header class="q-head">
+    <span class="eyebrow">{{EYEBROW}} · {{MADDE_ID}}</span>
+    <span class="q-count">Soru 1 / 1</span>
+  </header>
+  <fieldset class="q-body">
+    <legend id="caseQuestionTitle">{{SORU_METNI}}</legend>
+    <!-- Her seçenek için tekrarlanır (varsayılan 5); role=radio + görünür daire -->
+    <label class="opt" role="radio" aria-checked="false">
+      <input type="radio" name="activeCase" value="0">
+      <span class="opt-radio" aria-hidden="true"></span>
+      <span class="opt-text">{{SECENEK_METNI}}</span>
+    </label>
+    <!-- ...diğer seçenekler... -->
+  </fieldset>
+  <!-- Gönderilmeden önce: -->
+  <button type="button" class="btn primary" id="caseCheck" disabled>Yanıtla →</button>
+  <div class="q-feedback" id="caseFeedback" role="status" aria-live="polite"></div>
+  <!-- Gönderildikten sonra (aynı kart, feedback.html ile değişir): -->
+  <!-- <button type="button" class="btn primary" id="caseContinue">{{SON_MU ? 'Maddeyi tamamla' : 'Devam Et'}}</button> -->
+</article>
+
+<!-- Değerlendirme modu — mor kimlik, madde geri bildirimi YOK, nokta ilerlemesi var -->
+<article class="quiz-item">
+  <section class="case-side">
+    <div class="strict-banner">Değerlendirme modu. Gönderilen yanıt değiştirilemez; açıklamalar tüm sorular yanıtlanıp değerlendirildikten sonra gösterilir.</div>
+    <article class="q-card-dark quiz-card" aria-labelledby="quizQuestionTitle">
+      <header class="q-head">
+        <span class="eyebrow">DEĞERLENDİRME · SORU {{N}}/{{TOPLAM}}</span>
+        <span class="q-count">{{GONDERILEN}}/{{TOPLAM}} gönderildi</span>
+      </header>
+      <div class="q-dots" role="progressbar" aria-valuemin="0" aria-valuemax="{{TOPLAM}}" aria-valuenow="{{GONDERILEN}}">
+        <!-- her madde için bir <i class="done|now|"> -->
+      </div>
+      <fieldset class="q-body">
+        <legend id="quizQuestionTitle">{{SORU_METNI}}</legend>
+        <!-- seçenekler (yukarıdaki .opt kalıbı) -->
+      </fieldset>
+      <!-- Gönderilmeden önce: <button class="btn primary" id="quizSubmit" disabled>Yanıtla →</button> -->
+      <!-- Gönderildikten sonra (madde geri bildirimi YOK — yalnız ilerleme): -->
+      <p class="q-locked" role="status">Yanıt gönderildi · değiştirilemez</p>
+      <button type="button" class="btn primary" id="quizItemNext">{{SON_MU ? 'Yanıtları değerlendir →' : 'Sonraki soru →'}}</button>
+    </article>
+  </section>
+</article>
+
+<style>
+/* Kaynak: cardai/styles.css .q-card-dark, .opt, .q-dots (özet) */
+.q-card-dark{background:linear-gradient(160deg,var(--navy-900),var(--navy-800));color:var(--card);border-radius:var(--r-lg);padding:16px}
+.opt{display:flex;align-items:center;gap:10px;min-height:44px;padding:8px 10px;border-radius:var(--r-md);border:1px solid rgba(255,255,255,.18)}
+.opt[aria-checked=true]{border-color:var(--blue-400);background:rgba(46,141,247,.15)}
+.opt.is-correct{border-color:var(--green-500)} .opt.is-wrong{border-color:var(--red-500)}
+.q-dots i{display:inline-block;width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.25);margin-right:4px}
+.q-dots i.done{background:var(--purple-600)} .q-dots i.now{background:var(--blue-400)}
+</style>

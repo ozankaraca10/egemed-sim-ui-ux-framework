@@ -1,0 +1,108 @@
+<!--
+  EGEMED SIM FRAMEWORK — bileşen: Dialoglar (çıkış onayı, tam ekran önerisi, örneklem onayı)
+  ================================================================================================
+  Kaynak: cardai/index.html <dialog id="quizExitDialog">, <dialog id="resampleDialog">,
+  <dialog id="fullscreenPrompt">, <dialog id="resetDialog"> (satır 138, 140-142).
+
+  NEDEN (ORTAK)
+  -------------
+  - Native `<dialog>` elemanı kullanılır; `window.confirm()`/`alert()` KULLANILMAZ.
+    Gerekçe: (1) stil/erişilebilirlik tutarlılığı — tüm dialoglar aynı görsel dile
+    sahip; (2) SCORM/LMS iframe konteynerlerinde `window.confirm` bazen bastırılır
+    veya farklı davranır; (3) `showModal()` odak tuzağı ve `Esc` ile kapama native
+    olarak gelir, ekstra kod gerekmez.
+  - Her dialogun üç çıkışı vardır: birincil eylem, ikincil/vazgeç, kapat (×) —
+    üçü de tutarlı bir sonuca götürür (aşağıda dialog başına açıklanmıştır).
+  - Dialoglar `aria-labelledby` ile başlıklarına bağlanır; `showModal()` odağı
+    otomatik dialog içine alır, kapanınca tetikleyen elemana geri döner (native).
+
+  1) ÇIKIŞ ONAYI (#quizExitDialog)
+  ----------------------------------
+  NEDEN: Değerlendirme modundayken marka/"Mod Değiştir" tıklanırsa, kullanıcı
+  yanlışlıkla oturumdan çıkabilir. Yanıtlar zaten kalıcıdır (kaybolmaz) ama onay
+  olmadan çıkmak kafa karıştırıcıdır ("yanıtlarım gitti mi?"). Dialog metni açıkça
+  "yanıtlarınız kaydedilir" der — kullanıcı kaygısını giderir.
+  PULSE'TA NEREDE: cardai/app.js `leaveFor(target)` — `state.activeView==='quiz'`
+  ve hedef quiz değilse `pendingExit=target; $('quizExitDialog').showModal()`.
+
+  2) TAM EKRAN ÖNERİSİ (#fullscreenPrompt)
+  -------------------------------------------
+  NEDEN: bkz. snippets/fullscreenPrompt.js üst yorum bloğu (açılışta bir kez
+  önerilir, "Tekrar sorma" localStorage'a yazılır, SCORM kaydına YAZILMAZ).
+  PULSE'TA NEREDE: cardai/landing.js `maybeShowFullscreenPrompt()`,
+  `setTimeout(maybeShowFullscreenPrompt,400)`.
+
+  3) ÖRNEKLEM ONAYI (#resampleDialog)
+  ---------------------------------------
+  NEDEN: bkz. snippets/requestResample.js üst yorum bloğu (yalnız en az bir yanıt
+  işaretli/gönderilmişse onay istenir; dokunulmamış oturumda onaysız çalışır).
+  PULSE'TA NEREDE: cardai/app.js `requestResample(section,action)`.
+
+  (Dördüncü örnek — İLERLEME SIFIRLAMA #resetDialog — aynı kalıbı izler; Hakkında
+  sayfasındaki "İlerlemeyi sıfırla" eylemi için, LMS `passed` durumunun korunacağını
+  açıkça belirtir.)
+
+  ÜRÜN-BAĞIMSIZ KULLANIM
+  ------------------------
+  Metinlerdeki "yanıt", "vaka", "EKG sonucu" ürüne göre {{OGE_TERIMI}} ile değişir.
+-->
+
+<dialog id="quizExitDialog" aria-labelledby="quizExitTitle">
+  <div class="dialog-head">
+    <h2 id="quizExitTitle">Değerlendirmeden çıkılsın mı?</h2>
+    <button id="closeQuizExit" class="icon-btn" aria-label="Kapat">×</button>
+  </div>
+  <p>Yanıtlarınız kaydedilir; oturum devam ettirilebilir.</p>
+  <div class="dialog-actions">
+    <button id="confirmQuizExit" class="primary-btn">Evet, çık</button>
+    <button id="cancelQuizExit" class="secondary-btn">Vazgeç</button>
+  </div>
+</dialog>
+
+<dialog id="resampleDialog" aria-labelledby="resampleTitle">
+  <div class="dialog-head">
+    <h2 id="resampleTitle">Yeni örneklem alınsın mı?</h2>
+    <button id="closeResample" class="icon-btn" aria-label="Kapat">×</button>
+  </div>
+  <p>Bu oturumdaki yanıtlar silinir; gözlem ilerlemesi ve en iyi puan korunur.</p>
+  <div class="dialog-actions">
+    <button id="confirmResample" class="primary-btn">Evet, devam et</button>
+    <button id="cancelResample" class="secondary-btn">Vazgeç</button>
+  </div>
+</dialog>
+
+<dialog id="fullscreenPrompt" aria-labelledby="fullscreenPromptTitle">
+  <div class="dialog-head">
+    <h2 id="fullscreenPromptTitle">Tam ekran önerilir</h2>
+    <button id="closeFullscreenPrompt" class="icon-btn" aria-label="Kapat">×</button>
+  </div>
+  <p>EGEMED {{URUN_ADI}} en iyi deneyimi tam ekranda sunar. Tam ekrana geçmek ister
+    misiniz? İstediğiniz zaman üst çubuktaki ⛶ düğmesi veya F tuşuyla değiştirebilirsiniz.</p>
+  <label class="tutorial-remember"><input type="checkbox" id="fullscreenPromptDontAsk"> Tekrar sorma</label>
+  <div class="dialog-actions">
+    <button id="confirmFullscreenPrompt" class="primary-btn">Tam ekrana geç</button>
+    <button id="cancelFullscreenPrompt" class="secondary-btn">Böyle devam et</button>
+  </div>
+</dialog>
+
+<dialog id="resetDialog" aria-labelledby="resetTitle">
+  <div class="dialog-head">
+    <h2 id="resetTitle">İlerleme sıfırlansın mı?</h2>
+    <button id="closeReset" class="icon-btn" aria-label="Kapat">×</button>
+  </div>
+  <p>Yerel gözlemler, örneklemler, yanıtlar, en iyi puan ve araç kullanımı sıfırlanır.
+    LMS'nin daha önce kabul ettiği başarı durumu korunur; LMS başarı kaydını
+    sıfırlama yetkisi bu uygulamada yoktur.</p>
+  <div class="dialog-actions">
+    <button id="confirmReset" class="danger-btn">Evet, sıfırla</button>
+    <button id="cancelReset" class="secondary-btn">Vazgeç</button>
+  </div>
+</dialog>
+
+<style>
+/* Kaynak: cardai/styles.css dialog, .dialog-head, .dialog-actions (özet) */
+dialog{border:0;border-radius:var(--r-lg);box-shadow:var(--shadow-pop);padding:20px;max-width:420px}
+dialog::backdrop{background:rgba(10,42,94,.35)}
+.dialog-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
+.dialog-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+</style>
