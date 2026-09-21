@@ -24,12 +24,21 @@
   - Renk kimliği: İnceleme=yeşil, Uygulama=mavi, Değerlendirme=mor — bu kimlik
     kartta, header çipinde ve soru kartı kenarlığında AYNI kalır (tekrarlanan
     ipucu, mod karışıklığını önler).
+  - **Kararlı yeniden çizim (Tur 5):** Bu kartların ilerleme yüzdesi periyodik
+    olarak (Pulse'ta 250 ms'de bir) güncellenir; bu döngü kart HTML'ini karşılaştırma
+    YAPMADAN her seferinde `innerHTML` ile yeniden kuruyorsa, kullanıcı tam o
+    pencerede bastığı düğmeyi "parmağının altından" kaybedebilir (tıklama sessizce
+    kaybolur). Bkz. docs/04-etkilesim-ve-erisilebilirlik.md §9 ve
+    snippets/stableRender.js — bu bileşeni periyodik güncelleyen HER ürün aynı
+    kararlı-render kalıbını kullanmalıdır.
 
   PULSE'TA NEREDE
   ----------------
   cardai/app.js `renderModes(gates)` — `learn`/`practice`/`assessment` şablonları;
   kilit durumunda CTA `data-view` kilidi açan görünümü hedefler (kendini değil).
-  `derivePrerequisites()` (cardai/state.js `derive`) kapıları hesaplar.
+  `derivePrerequisites()` (cardai/state.js `derive`) kapıları hesaplar. Kararlı
+  render: `box.dataset.rendered`/`box.dataset.bound` kalıbı (Tur 5 — bkz.
+  snippets/stableRender.js) — döngü `progress()`'in 250 ms'lik tetiklemesinden gelir.
 
   ÜRÜN-BAĞIMSIZ KULLANIM
   ------------------------

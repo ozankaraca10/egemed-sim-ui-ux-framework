@@ -162,3 +162,78 @@ Her ürün, her önemli ekranın (landing, mod seçimi, öğretici, uygulama mad
 bildirim/oturum sonu, değerlendirme, sonuçlar, hakkında) ekran görüntüsünü şu genişliklerde
 almalıdır: **390×844** (mobil), **768×1024** (tablet), **1366×768** (masaüstü). Her
 görüntüde yatay taşma YOKTUR (`document.documentElement.scrollWidth <= innerWidth`).
+
+---
+
+## 18. İçerik QC — 400 madde, 5 seçenek, harf dağılımı, vm kontrolleri
+
+Madde bankası büyüklüğüne (Pulse: 200 vaka + 200 değerlendirme = 400 madde, her biri 5
+seçenekli) bakılmaksızın, her ürün TARAYICI AÇMADAN çalışan bir içerik doğrulama betiği
+bulundurmalıdır. Bu betik `curriculum.js` (veya eşdeğeri) dosyasını bir Node `vm` bağlamında
+(`vm.createContext`/`vm.runInContext`) yükler ve şunları doğrular:
+
+- Her havuzda (vaka/değerlendirme) madde sayısı beklenenle eşleşir VE tüm madde metinleri
+  (stem+soru) birbirinden FARKLIDIR (`Set` boyutu = madde sayısı — kopya madde yok).
+- Her havuzda mod:karar (`mode:decisionId`) kombinasyonu da benzersizdir (aynı klinik
+  senaryonun tekrar edip etmediği kontrol edilir).
+- Doğru şıkkın (5 seçenek → A–E) pozisyon dağılımı havuz genelinde YAKLAŞıK EŞİTTİR (400
+  maddede 5 pozisyon × 80 = her pozisyonda ~80, veya alt havuz başına 200/5=40) — docs/03 §2'deki
+  "seçenek permütasyonu" kuralının nicel kanıtı budur; tek bir pozisyonun aşırı sıklıkta
+  doğru çıkması, permütasyon algoritmasında bir hata olduğunu gösterir.
+- Ritim/tanı (ayırt edici) maddelerin stem'inde bulgu-tarif eden bir desen YOKTUR (bkz. §11
+  G4 — bu kontrol aynı `vm` yüklemesini paylaşır).
+
+**Neden `vm` ve neden ayrı bir katman:** Tarayıcı açıp Playwright ile 400 madde gezmek
+YAVAŞTIR ve DOM/render hatalarıyla içerik hatalarını karıştırır. `vm` katmanı saniyeler
+içinde çalışır, yalnız VERİ bütünlüğüne bakar; tarayıcı testleri (F/G/H serisi) ayrıca
+etkileşim/görsel katmanı doğrular. İkisi birbirinin YERİNE geçmez.
+
+**Pulse'ta nerede:** `qa/independent_content.mjs` "T04-unique-content-and-position-distribution"
+— `vm.createContext(w)`, `vm.runInContext(...,'model.js')`/`'curriculum.js'`; her havuz için
+`{count,exactText,distinctModeDecision,correctPositions}` hesaplayıp `count===200 &&
+exactText===200 && distinctModeDecision===200 && correctPositions.every(n=>n===40)` iddiasını
+kontrol eder. `qa/mode_flow_audit.mjs` "G4-answer-leak-regex" aynı `vm` yüklemesini kullanır.
+
+### QC dışa aktarma paketi
+
+QC ekibinin (dış kalite kontrol yapan kişiler) madde bankasını KOD OKUMADAN, kendi
+formatlarında (tablo + kayıt görüntüsü) inceleyebilmesi için, `cardai/`i (veya eşdeğerini)
+yalnız OKUYAN, hiçbir kaynağı DEĞİŞTİRMEYEN bir dışa aktarma betiği bulunur. Betik her madde
+için: A–E seçenek metinleri, doğru harf + doğru metin, ve maddenin sentetik kaydının statik
+bir görüntüsünü (ör. `<canvas>` render'ının PNG'si) üretir; tek komutla tekrar üretilebilir.
+
+**Neden:** Bir QC raporu genelde xlsx/docx formatında teslim edilir ve düzeltmeler de aynı
+formatta beklenir; QC ekibinin koda bakıp doğru şıkkı/derivasyonu teyit etmesini BEKLEMEK
+gerçekçi değildir. Dışa aktarma paketi, "kod neyi üretiyor" ile "QC ekibi neyi onaylıyor"
+arasındaki farkı kapatır — düzeltme sonrası paket YENİDEN üretilip QC ekibine geri gönderilir.
+
+**Pulse'ta nerede:** `qa/export_items.mjs` — `cardai/` içeriğini OKUR, `cardai/`e YAZMAZ;
+çıktı `qa/evidence/export/*` (madde tablosu: `letter(i)=String.fromCharCode(65+i)` ile A–E
+etiketleme, her maddenin sentetik EKG'sinin ekran görüntüsü `qa/evidence/export/ecg/`).
+Yeniden üretim: `node qa/export_items.mjs`.
+
+---
+
+## 19. Tıklama hedefi kararlılığı kabul testi
+
+Bkz. docs/04-etkilesim-ve-erisilebilirlik.md §9 (kural ve gerekçe) ve
+`snippets/stableRender.js` (render kalıbı). Kabul testi kalıbı: her görünümdeki (landing, mod
+seçimi, öğretici, sim, uygulama madde/geri bildirim/oturum sonu, değerlendirme, sonuçlar,
+hakkında, dialoglar) görünür VE etkin (disabled olmayan) her tıklanabilir öğe için:
+
+1. Öğeyi görünür alana kaydır, üzerine `mousedown` uygula.
+2. **300 ms bekle** (ürünün en kısa periyodik render döngüsünden — Pulse'ta 250 ms —
+   UZUN olmalı; döngünün test sırasında en az bir kez çalışmasını garanti eder).
+3. İmleci öğenin dışına taşı, sonra geri getirip `mouseup` uygula.
+4. Doğrula: (a) `mousedown` anında işaretlenen DOM düğümü hâlâ `isConnected===true`
+   (DOM'dan sökülüp yeniden eklenmedi), (b) `mouseup` konumundaki `elementFromPoint`
+   sonucu AYNI düğümü (veya onun içindeki bir alt öğeyi) hedefliyor.
+
+Mod seçim kartları gibi periyodik güncellenen ekranlarda bu senaryo ardışık **20 kez**
+denenir; kabul eşiği **20/20**dir (tek bir kayıp bile FAIL sayılır — aralıklı/nadir bir
+hata kullanıcı için hâlâ gerçek bir hatadır).
+
+**Pulse'ta nerede:** Tanı/geliştirme betiği `scratchpad/click_stability.mjs` (Playwright,
+her görünümü gezip tüm düğme/etiket/chip için bas-bekle-bırak uygular, DOM bağlantısı ve
+hedef eşleşmesi kaybolan öğeleri raporlar). Ürün-bağımsız test şablonu:
+`tests/click-stability.template.mjs`.

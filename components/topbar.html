@@ -22,12 +22,19 @@
     sağ araç grubu genişliği ne olursa olsun kayması önlenir.
   - "Mod Değiştir" düğmesi `hide-mobile`: ≤720px'te ikon dahi gizlenir çünkü mod
     değişimi mobilde marka bağlantısına (`#brandHome`) taşınır (bkz. docs/02).
+  - Tam ekran düğmesi ikonun yanında durumla değişen bir METİN etiketi taşır
+    ("Tam ekran" / "Tam ekrandan çık") — yalnız ikonla gösterilen bir aç/kapa
+    düğmesinin belirsiz olduğu gerekçesiyle (bkz. docs/04-etkilesim-ve-erisilebilirlik.md
+    §1.5). Bu etiket, uygulama header'ında VE landing'deki eşdeğer düğmede (bkz.
+    components/landing.html `#landingFullscreen`) AYNI mantıkla senkron tutulur —
+    iki ayrı DOM düğümü olsa da tek bir `syncFullscreen()` fonksiyonu ikisini de günceller.
 
   PULSE'TA NEREDE
   ----------------
   cardai/index.html satır 5–14 (uygulama topbar); cardai/features.js
   `renderHeader(view)` (çip metni/rengi), `toggleFullscreen`/`syncFullscreen`
-  (fullscreenBtn), `showUiNote` (#uiNote). CSS: cardai/styles.css
+  (fullscreenBtn VE landingFullscreen etiketlerini birlikte günceller — Tur 5),
+  `showUiNote` (#uiNote). CSS: cardai/styles.css
   `.topbar .eg-brand-icon{filter:brightness(0) invert(1)}`, `.eg-brand-tag`.
 
   ÜRÜN-BAĞIMSIZ KULLANIM
@@ -58,6 +65,7 @@
   </button>
   <button class="eg-navbtn hide-mobile" id="fullscreenBtn" type="button" aria-label="Tam ekrana geç" title="Tam ekran (F)">
     <svg class="ico" id="fullscreenIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+    <span class="lbl">Tam ekran</span>
   </button>
   <span class="divider-v" aria-hidden="true"></span>
   <button class="eg-navbtn" id="helpBtn" type="button" title="Yardım ve kısayollar">

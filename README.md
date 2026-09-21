@@ -13,14 +13,14 @@ dosya/fonksiyondan geldiğini belirtir.
 Kullanıcı bir üründen diğerine geçtiğinde aynı yerleşimi, aynı renk/tipografi dilini, aynı
 mod akışını (İnceleme/Uygulama/Değerlendirme), aynı soru/geri bildirim kalıbını ve aynı
 sonuç raporunu görmelidir. Bu şablon, Ausculta'nın kurduğu ilk temele Pulse'ta 18–21 Eylül
-2026'da üç turda eklenen pedagoji/görsel iyileştirmeleri **ürün-bağımsız kurallar** olarak
-ekler. Ausculta ve Opaca bu şablona göre hizalanır.
+2026'da BEŞ turda eklenen pedagoji/görsel/içerik iyileştirmeleri **ürün-bağımsız kurallar**
+olarak ekler. Ausculta ve Opaca bu şablona göre hizalanır.
 
 ## Ürünler
 
 | Ürün | Alan | Durum |
 |---|---|---|
-| **Pulse** | EKG / dolaşım eğitimi | Şablonun kaynağı; turların tamamı uygulandı |
+| **Pulse** | EKG / dolaşım eğitimi | Şablonun kaynağı; beş turun tamamı uygulandı |
 | **Ausculta** | Kardiyopulmoner oskültasyon | Şablonun temeli (v1.0); üç tur henüz uygulanmadı |
 | **Opaca** | [Opaca: belirlenecek] | Öğe terimi ve alan bilgisi bekleniyor |
 
@@ -44,26 +44,34 @@ ekler. Ausculta ve Opaca bu şablona göre hizalanır.
 
 ```
 README.md                       — bu dosya
-CHANGELOG.md                    — sürüm tarihçesi (v1.0 Ausculta tabanı → v1.1/1.2/1.3 Pulse turları)
+CHANGELOG.md                    — sürüm tarihçesi (v1.0 Ausculta tabanı → v1.1…v1.5 Pulse turları)
 docs/
-  01-tasarim-sistemi.md         — token'lar, tipografi, renkler, radius/gölge, ikon, marka bloğu, footer
-  02-ekranlar.md                — landing, mod seçimi, öğretici, uygulama, değerlendirme, sonuçlar, hakkında, dialoglar
+  01-tasarim-sistemi.md         — token'lar, tipografi, renkler, radius/gölge, ikon, marka bloğu, footer,
+                                   landing marka kompozisyonu
+  02-ekranlar.md                — landing (kompozisyon, validasyon ifadesi, ortam sesi), mod seçimi, öğretici,
+                                   uygulama, değerlendirme, sonuçlar, hakkında (roller/yer tutucular), dialoglar
   03-mod-akisi-ve-pedagoji.md   — kilit≠öneri, gönderim kuralları, örneklem/onay, otomatik değerlendirme,
-                                   seçenek permütasyonu, stem/ipucu sızıntısı, geri bildirim yapısı, başarı tanımı
-  04-etkilesim-ve-erisilebilirlik.md — tam ekran, kısayol kapsamı, zoom, karşılaştırma çizimi,
-                                   odak yönetimi, ARIA kalıpları, 44px hedef, 390px davranışı
+                                   seçenek permütasyonu, stem/ipucu sızıntısı, geri bildirim yapısı, başarı tanımı,
+                                   içerik kalite kuralları (madde bankası QC döngüsü)
+  04-etkilesim-ve-erisilebilirlik.md — tam ekran (+ düğme etiketi), kısayol kapsamı, zoom, karşılaştırma çizimi,
+                                   odak yönetimi, ARIA kalıpları, 44px hedef, 390px davranışı,
+                                   tıklama hedefi kararlılığı
   05-kayit-ve-scorm.md          — SCORM 1.2 tek SCO, suspend_data 4096, şema sürümü + içerik imzası (cv),
                                    localStorage kapsamı, LMS passed korunması
-  06-qa-kabul.md                — Playwright kabul listesi, build tekrarlanabilirliği, ekran boyutları
+  06-qa-kabul.md                — Playwright kabul listesi, build tekrarlanabilirliği, ekran boyutları,
+                                   içerik QC (400 madde/vm kontrolleri/dışa aktarma), tıklama kararlılığı testi
   07-uygulama-kontrol-listesi.md — Ausculta/Opaca'ya uygularken faz faz kontrol listesi + terim tablosu
 tokens/
   family-tokens.css             — tek kaynak aile token'ları (renk/tipografi/radius/gölge)
 components/
   topbar.html, footer.html, mode-card.html, question-card-dark.html, feedback.html,
-  results-summary.html, dialog.html, zoom-group.html, compare-key.html
+  results-summary.html, dialog.html, zoom-group.html, compare-key.html, landing.html,
+  sound-toggle.html
 snippets/
   seededPermutation.js, requestResample.js, toggleFullscreen.js, fullscreenPrompt.js,
-  progress-percent.js
+  progress-percent.js, stableRender.js, landingSound.js
+tests/
+  click-stability.template.mjs  — tıklama hedefi kararlılığı kabul testi şablonu (ürün-bağımsız)
 reference/
   ausculta/                     — Pulse'un temel aldığı Ausculta referansı (tsx/css/screens/brand kopyası)
   pulse/                        — orijinal YONERGE_*.md belgeleri + mode-flow kabul testi ekran görüntüleri
@@ -71,17 +79,20 @@ reference/
 
 ## Sürüm
 
-Bkz. `CHANGELOG.md`. Güncel: **v1.3** (Pulse Tur 3 — 21 Eylül 2026 durumu tamamen işlendi).
+Bkz. `CHANGELOG.md`. Güncel: **v1.5** (Pulse Tur 5 — 21 Eylül 2026 durumu tamamen işlendi).
 
 ## Kaynak ve doğrulama
 
 Bu şablondaki her kural, `/Users/ozankaraca/Documents/Codex/EGEMED_PULSE` deposundaki
 gerçek değişikliklerden doğrulanmıştır:
 
-- `git diff -- cardai` (18-21 Eylül 2026 arası, üç turun tamamı — depo commit'lenmemiş
+- `git diff -- cardai` (18-21 Eylül 2026 arası, beş turun tamamı — depo commit'lenmemiş
   çalışma kopyası hâlinde tutulmuştur).
-- `qa/mode_flow_audit.mjs` (18/18 PASS kabul testi — bkz. `reference/pulse/mode-flow-screens/report.json`).
-- `BUILD.md` "Son teslim kaydı" / "Önceki kayıt" zinciri (tur tarihleri: 18, 19, 21 Eylül 2026).
+- `qa/mode_flow_audit.mjs` (Tur 1-5 kabul testleri, F/G/H/L serisi — bkz.
+  `reference/pulse/mode-flow-screens/report.json`).
+- `qa/independent_content.mjs`, `qa/export_items.mjs` (içerik QC — madde bütünlüğü, dışa aktarma).
+- `BUILD.md` "Son teslim kaydı" / "Önceki kayıt" zinciri (tur tarihleri: 18, 19, 21 Eylül 2026 —
+  Tur 4 ve Tur 5 aynı gün, 21 Eylül, ayrı teslim kayıtlarıdır).
 - `cardai/KULLANIM.md` (kullanıcıya dönük davranış tarifi).
 
 EGEMED_PULSE deposu bu şablon deposundan **yalnız okunur**; hiçbir dosyası değiştirilmemiştir.

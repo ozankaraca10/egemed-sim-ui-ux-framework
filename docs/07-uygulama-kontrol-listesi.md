@@ -119,6 +119,32 @@ doldurulamaz — bu maddeler kullanıcı kararı bekler, tahmin/uydurma YAPILMAZ
 - [ ] Ürünün kullanım/BUILD belgelerini (KULLANIM.md/BUILD.md benzeri) güncelle: yeni akış,
       terim değişiklikleri, yazı ölçeği notu.
 
+## Faz 7 — Pulse Tur 4/5 yeni kuralları (içerik QC, landing, tıklama kararlılığı)
+
+Bu fazın maddeleri v1.4/v1.5'te eklendi; henüz hiçbir ürüne uygulanmadığından her madde
+Ausculta ve Opaca için AYRI işaretlenir (bir ürünün tamamlaması diğerini otomatik
+tamamlamaz — ikisi de kendi kod tabanında ayrı ayrı doğrulanmalıdır).
+
+| Kural | Bkz. | Ausculta | Opaca |
+|---|---|---|---|
+| Yönetim/yaklaşım maddeleri tek şablondan değil, hemodinamik durum + klinik bağlama göre bankalanıyor | docs/03 §9.1 | ☐ | ☐ |
+| Vital/bağlam–anahtar tutarlılığı doğrulandı; arrest bağlamında retrospektif not (`.case-note`) uygulandı | docs/03 §9.2 | ☐ | ☐ |
+| Görsel–metin uyumu: her tanı/bölge için sabit derivasyon üçlüsü, madde bu üçlüden türetiliyor | docs/03 §9.3 | ☐ | ☐ |
+| Medya çeşitliliği: aynı örüntünün tekrarında kayıt penceresi/başlangıcı farklılaştırıldı | docs/03 §9.4 | ☐ | ☐ |
+| Ölçüm standardı notu: model ölçüm noktası kılavuz eşiğinden farklıysa madde metninde belirtiliyor | docs/03 §9.5 | ☐ | ☐ |
+| Tautolojik/çift geçerli seçenek taraması yapıldı (dış QC veya iç gözden geçirme) | docs/03 §9.6 | ☐ | ☐ |
+| Kayıt imzası (`cv`) içerik sürümüne bağlı; şema sürümünden AYRI tutuluyor, uyumsuzlukta yalnız içerik-bağımlı veri tazeleniyor | docs/03 §9.7 | ☐ | ☐ |
+| Dış QC döngüsü kuruldu: tam-eşleşmeli yama betiği → `vm` doğrulaması → tarayıcı testleri → QC dışa aktarma paketi | docs/03 §9.8, docs/06 §18 | ☐ | ☐ |
+| `vm` tabanlı içerik testi: madde sayısı, benzersizlik, doğru şık pozisyon dağılımı, cevap sızıntısı regex'i | docs/06 §18 | ☐ | ☐ |
+| QC dışa aktarma paketi (`qa/export_items.mjs` eşdeğeri) kuruldu ve tek komutla tekrar üretilebiliyor | docs/06 §18 | ☐ | ☐ |
+| Landing kompozisyonu: kurum satırı üstte, ürün logosu büyütüldü, kurum filigranı arkada renkli/büyük | docs/01 §5.3, docs/02 §1, components/landing.html | ☐ | ☐ |
+| Validasyon ifadesi politikası: "bağımsız doğrulama yok" ifadeleri kaldırıldı, standart atıf cümlesi tüm yüzeylerde (landing/Hakkında/Yardım/kullanım belgesi/sources.json) tutarlı | docs/02 §1, §7 | ☐ | ☐ |
+| Hakkında rolleri güncellendi ("Öğretim Tasarımı ve Tıbbi Danışmanlık" / "Tıbbi İçerik Validasyonu"); isim netleşmeden yer tutucu kullanılıyor, boş baş harf avatarı "…" | docs/02 §7 | ☐ | ☐ |
+| Landing ortam sesi eklendi (varsayılan açık, `aria-pressed`, localStorage kalıcı, yalnız landing'de çalar) | docs/02 §1, components/sound-toggle.html, snippets/landingSound.js | ☐ | ☐ |
+| Tam ekran düğmesi metin etiketli ("Tam ekran"/"Tam ekrandan çık"), landing'de de | docs/04 §1.5 | ☐ | ☐ |
+| Tıklama hedefi kararlılığı: periyodik render yolları içerik değişmeden `innerHTML` YENİLEMİYOR, tıklama tek delege dinleyiciyle yakalanıyor | docs/04 §9, snippets/stableRender.js | ☐ | ☐ |
+| Tıklama kararlılığı kabul testi uygulandı (300 ms bekleme, mod kartlarında 20/20) | docs/06 §19, tests/click-stability.template.mjs | ☐ | ☐ |
+
 ---
 
 ## Terim tablosu (ürün öğesi)

@@ -154,6 +154,44 @@ zaten bağlamı verir).
 **Ürün-bağımsız değer:** Pulse="Etkileşimli EKG Simülatörü", Ausculta="Oskültasyon Simülatörü"
 (veya mevcut sloganı), Opaca=`[Opaca: belirlenecek]`.
 
+### 5.3 Landing marka kompozisyonu — kurum amblemi + ürün logosu + filigran
+
+**Kural:** Landing'de kurum ve ürün kimliği ÜÇ ayrı katmanda, açık bir hiyerarşiyle
+gösterilir: (1) en üstte KÜÇÜK, net bir kurum satırı (amblem + kurum adı metni, ör. 96 px
+yükseklik), (2) hemen altında BÜYÜK, yatay bir ürün logosu (kartın en görünür öğesi;
+genişliği viewport'a göre ölçeklenir — `min(640px,86vw)`, üç kırılımda küçülür: 480/380/300),
+(3) arka planda, kart arkasında ORTALANMIŞ, büyük ve RENKLİ (grayscale/silik DEĞİL) bir
+kurum filigranı (`opacity .14`, filtre yok). Kart, filigranın üstünde okunaklı kalması için
+yarı saydam beyaz zemin + hafif blur alır (`rgba(255,255,255,.86)` + `backdrop-filter:
+blur(2px)`). Dar ekranda (≤820px) filigran tamamen gizlenir (dekoratif katman, kritik bilgi
+taşımaz).
+
+**Neden:** Önceki kompozisyonda kurum amblemi sola yaslı, KÜÇÜK ve silik (`opacity:.08`,
+grayscale) bir dekorasyon; ürün logosu ise görece küçük (`min(320px,52vw)`) bir öğeydi —
+kurumsal kimlik ile ürün kimliği arasındaki HİYERARŞİ belirsizdi (hangisi "asıl" mesaj?).
+Kurumu ÜSTE, KÜÇÜK ve net bir satır olarak taşımak ("bunu kim/hangi kurum sağlıyor" sorusuna
+anında cevap) ile ürün logosunu BÜYÜTÜP ana görsel odak yapmak ("bu ne" sorusuna cevap) bu
+hiyerarşiyi netleştirir. Filigranı silik bir dekorasyondan büyük/renkli bir arka plan öğesine
+çevirmek, kurumsal kimliği güçlendirirken; kartın yarı saydam zemin + blur alması, filigranın
+arkasındaki metnin (başlık, "Neden güvenilir?" kutuları) okunabilirliğini KORUR — filigran
+güçlenirken içerik okunabilirliği FEDA EDİLMEZ.
+
+**Pulse'ta nerede:** `cardai/styles.css` `.landing-seal` (ortalı, `width:min(78vh,60vw)`,
+`max-width:720px`, `opacity:.14`, `filter:none` — önceki `left:...;opacity:.08;
+filter:grayscale(1)` yerine), `.landing-card` (`background:rgba(255,255,255,.86);
+backdrop-filter:blur(2px)`), `.landing-inst`/`.landing-inst-text` (96 px kurum satırı, altında
+"Ege Üniversitesi Tıp Fakültesi" metni; 1024px altı 72px), `.landing-logo`
+(`width:min(640px,86vw);max-height:210px`; kırılımlar: 1000–820px yükseklikte
+`min(480px,55vw)`, ≤700px genişlikte `min(380px,72vw)`, ≤600px yükseklikte `min(300px,34vw)`).
+`cardai/index.html` `.landing-card` içine `<img class="landing-inst">` +
+`<span class="landing-inst-text">` eklendi, `.landing-logo` `<img>`'i AYNI kaldı (yalnız CSS
+boyutu büyüdü). Bileşen: `components/landing.html`. Kanıt: `qa/evidence/mode-flow/
+landing-1366.png`, `landing-390.png` (Tur 5 — 21 Eylül 2026).
+
+**Ürün-bağımsız değer:** Kurum satırı (amblem + metin) ve filigran kaynağı TÜM ürünlerde
+AYNI kurum varlığıdır (`assets/ege-tip-logo.png` eşdeğeri); yalnız `.landing-logo`
+kaynağı ürüne göre değişir (Pulse: yatay tam logo `pulse-horizontal-full-1536x512.png`).
+
 ---
 
 ## 6. Footer

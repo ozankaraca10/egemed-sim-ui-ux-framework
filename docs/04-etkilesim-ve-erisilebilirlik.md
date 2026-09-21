@@ -73,6 +73,24 @@ açılır" beklentisini bozan tutarsız bir davranıştı. `BUTTON` engelleme li
 `qa/mode_flow_audit.mjs` "F9-fullscreen-root-via-f-key" — bir `.rhythm-tab` düğmesine
 tıklayıp odaklı hâldeyken `F` tuşuna basar, tam ekranın açıldığını doğrular.
 
+### 1.5 Düğme metin etiketi ("Tam ekran" / "Tam ekrandan çık")
+
+**Kural:** Tam ekran düğmesi yalnız bir ikonla DEĞİL, ikonun yanında durumla değişen bir
+metin etiketiyle ("Tam ekran" / "Tam ekrandan çık") gösterilir; bu, uygulama header'ında VE
+landing'deki eşdeğer düğmede AYNI şekilde uygulanır (iki ayrı kod yolu olsa bile ikisi de
+`syncFullscreen()`'de senkronize edilir).
+
+**Neden:** Yalnız ikonla gösterilen bir aç/kapa düğmesi, ikon dilini bilmeyen bir kullanıcı
+için belirsizdir ("bu ikon şu an ne YAPACAK?"). Metin etiketi bu belirsizliği ortadan
+kaldırır; dar ekranda (`hide-mobile`/`.lbl` gizleme kuralı, bkz. docs/02) etiket gizlenir
+ama ikon + `title`/`aria-label` yine de anlamı taşır.
+
+**Pulse'ta nerede:** `cardai/features.js syncFullscreen()` — hem `#fullscreenBtn`
+(`btn.querySelector('span')`) hem `#landingFullscreen` düğmesindeki etiket span'i
+`on?'Tam ekrandan çık':'Tam ekran'` ile güncellenir; `cardai/index.html` her iki düğmede de
+ikonun yanına `<span class="lbl">Tam ekran</span>` eklendi (Tur 5 — 21 Eylül 2026). Kanıt:
+`qa/evidence/mode-flow/topbar-fullscreen-label.png`.
+
 ---
 
 ## 2. Kısayol kapsamı
@@ -166,3 +184,53 @@ hedefler yanlışlıkla komşu öğeye dokunmayı artırır, özellikle uzun mad
 
 **Kabul testi:** `qa/mode_flow_audit.mjs` "F10-footer-edge-to-edge-390" — footer
 `left===0`, `right===innerWidth`, `scrollWidth<=innerWidth+1`.
+
+---
+
+## 9. Tıklama hedefi kararlılığı
+
+**Kural:** Bir zamanlayıcıyla (periyodik `setInterval`/`requestAnimationFrame` döngüsü ile)
+tekrar tekrar çalışan HİÇBİR render yolu, tıklanabilir öğeleri `innerHTML` atamasıyla /
+yeniden oluşturarak DEĞİŞTİREMEZ — bu, kullanıcının tam o an bastığı düğmeyi parmağının
+altından "çekip almasına" (DOM düğümünü değiştirmesine) yol açar ve `mousedown`/`mouseup`
+arasında imleç DOM'da artık var olmayan (veya yerinden oynamış) bir öğenin üstünde kalabilir.
+Çözüm iki parçalıdır: (1) içerik bir öncekiyle AYNIYSA render tamamen ATLANIR (üretilen HTML
+dizesi önceki ile karşılaştırılır — `dataset.rendered` deseni); (2) tıklama olayları, her
+render'da yeniden eklenen tek tek `addEventListener` ile DEĞİL, konteynerde KALICI tek bir
+delege (`event delegation`) dinleyiciyle yakalanır — dinleyici konteynere yalnız BİR KEZ
+bağlanır (`dataset.bound` bayrağı), konteynerin içeriği kaç kez yeniden çizilirse çizilsin
+dinleyici kaybolmaz/çoğalmaz.
+
+**Neden:** Mod seçim kartları 250 ms'de bir ilerleme çubuğunu güncellemek için
+`renderModes()`'u çağırıyordu; bu fonksiyon HER çağrıda `box.innerHTML=...` ile tüm kart
+DOM'unu SIFIRDAN yeniden kuruyordu — kart içeriği (ilerleme yüzdesi hariç) değişmese bile.
+Sonuç: kullanıcı bir mod kartına TAM 250 ms'lik pencerede basarsa (`mousedown`), düğme
+render tarafından DOM'dan sökülüp yeniden eklenmiş oluyordu; tarayıcı `mouseup`'ı artık DOM'da
+olmayan (veya yeni bir düğüm olan) eski hedefe bağlayamıyor, tıklama SESSİZCE kayboluyordu.
+Bu, kullanıcı için açıklanamayan, aralıklı ("bazen çalışıyor bazen çalışmıyor") bir arayüz
+hatasıdır — özellikle yavaş/kararsız bir tıklama/dokunuşta (basılı tutup düşünme, parmağı
+hafif kaydırma) sıklığı artar. Aynı sınıf hata, zamanlayıcıyla güncellenen HERHANGİ bir
+ekranda (ilerleme çubuğu, canlı sayaç, oturum durumu) tekrar edebilir — kural bu yüzden
+ürün-bağımsız ve genel tutulur.
+
+**Pulse'ta nerede:** `cardai/app.js renderModes(gates)` — eskiden
+`box.innerHTML=learn+practice+assessment;box.querySelectorAll('button[data-view]').forEach(
+btn=>btn.addEventListener('click',()=>showView(btn.dataset.view)));` (her çağrıda yeniden
+kur + yeniden bağla). Yeni hâli: `const html=learn+practice+assessment;
+if(box.dataset.rendered!==html){box.innerHTML=html;box.dataset.rendered=html;}
+if(!box.dataset.bound){box.dataset.bound='1';box.addEventListener('click',e=>{const
+btn=e.target.closest('button[data-view]');if(!btn||!box.contains(btn))return;
+btn.dataset.view==='results'?window.CardAResults.show('quiz'):showView(btn.dataset.view);});}`
+— içerik aynıysa `innerHTML` hiç dokunulmaz, dinleyici konteynere yalnız bir kez bağlanır
+(Tur 5 — 21 Eylül 2026; tetikleyici: `progress()`'in 250 ms'lik döngüsünün `renderModes()`'u
+periyodik çağırması). Tam algoritma ve yorum bloğu: `snippets/stableRender.js`.
+
+**Kabul testi:** Her ekranda görünür tüm tıklanabilir öğeler için: düğmeye BAS (`mousedown`),
+**300 ms bekle** (zamanlayıcı döngüsünün en az bir kez çalışması için — Pulse'ta 250 ms'lik
+döngüden daha uzun), imleci öğenin DIŞINA taşı, imleci geri getirip BIRAK (`mouseup`) —
+düğüm kimliği/referansı test boyunca DOM'da aynı kalmalı ve `mouseup` doğru hedefe
+ULAŞMALIDIR. Mod kartlarında bu senaryo 20 kez ardışık ("yavaş tıklama") denenir; 20/20
+başarı beklenir. Test kalıbı: `tests/click-stability.template.mjs` (Pulse'taki tanı betiği
+`scratchpad/click_stability.mjs`'in ürün-bağımsızlaştırılmış hâli — her görünümdeki tüm
+görünür/etkin düğmeleri basıp 300 ms bekleyip bırakarak DOM bağlantısının ve tıklama
+hedefinin korunduğunu doğrular).

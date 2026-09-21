@@ -66,8 +66,69 @@ Kaynak: `BUILD.md` "Üçüncü tur — vaka/soru EKG yakınlaştırma, beyaz üs
 - Açılışta **"Tam ekran önerilir"** popup'ı: Tam ekrana geç / Böyle devam et / Tekrar
   sorma → `localStorage`, **SCORM kaydına yazılmaz**.
 
+## v1.4 — Pulse Tur 4: içerik/pedagoji, kardiyoloji QC düzeltmeleri (21 Eylül 2026)
+
+Kaynak: `BUILD.md` "Dördüncü tur — kardiyoloji QC düzeltmeleri" kaydı
+(`EGEMED_PULSE_Kardiyoloji_QC_Raporu.docx`, 55 madde).
+
+- **İçerik kalite kuralları** (docs/03 §9, yeni bölüm): yönetim/yaklaşım maddelerinin
+  hemodinamik durum + klinik bağlama göre bankalanması (13 yeni bağlama özel banka: `arrestVf`,
+  `arrestPulseCheck`, `unstableVt`, `stableAf`, `stableSvt`, `stableAt`, `sinusTachApproach`,
+  `incidentalBbb`, `routineNormal`), vital/anahtar tutarlılığı, görsel–metin uyumu (sabit
+  derivasyon üçlüleri: anterior V2–V3–V4, inferior II–III–aVF, LBBB I–V1–V6), medya çeşitliliği
+  (PVC maddelerinde 7 farklı kayıt başlangıcı), ölçüm standardı notu (J+20 ms vs. kılavuz J
+  noktası), tautolojik/çift geçerli seçenek taraması, kayıt imzasının içerik sürümüne
+  bağlanması, dış QC döngüsü (tam-eşleşmeli yama betiği → `vm` doğrulaması → tarayıcı testleri
+  → dışa aktarma paketi).
+- 6 banka yeniden yazımı (PVC sınıflaması, VT ilk yaklaşım, AF/flutter ilk yaklaşım, iskemi
+  sınırı, AF–PVC ayrımı, PVC açıklaması) ve 35 madde satırı düzeltmesi.
+- Arrest/instabil olmayan bağlamda VF/VT ile ilgili 24 maddeye "Retrospektif eğitim analizi"
+  notu (`retroNote()`, `.case-note` sınıfı, Olgu kartında amber kutu — docs/03 §9.2).
+- Kayıt imzası: `cv = PulseCurriculum.version` (kayıt şemasının genel `version` alanından
+  AYRI); içerik değişince yalnız oturum/yanıt/en-iyi-deneme verisi yenilenir, gözlem süresi ve
+  kontrol listesi KORUNUR (docs/03 §9.7, docs/05).
+- Hakkında sayfasında "Öğretim Tasarımı ve Tıbbi Danışmanlık" rolü yeniden adlandırıldı, yeni
+  "Tıbbi İçerik Validasyonu" grubu eklendi (4 yer tutucu) — bkz. docs/02 §7.
+- QA: `qa/independent_content.mjs` "T04-unique-content-and-position-distribution" (400 madde,
+  5 seçenek, harf dağılımı, `vm` kontrolleri — docs/06 §18); `qa/export_items.mjs` QC dışa
+  aktarma paketi (docs/06 §18).
+
+## v1.5 — Pulse Tur 5: landing, validasyon ifadesi, ortam sesi, tıklama kararlılığı (21 Eylül 2026)
+
+Kaynak: `BUILD.md` "Beşinci tur — landing yeniden düzenleme, validasyon ifadeleri, monitör
+sesi, tam ekran etiketi" kaydı.
+
+- **Landing kompozisyonu** (docs/01 §5.3, docs/02 §1, `components/landing.html`): üstte küçük
+  bir kurum satırı (96 px amblem + "Ege Üniversitesi Tıp Fakültesi" metni), altında büyütülmüş
+  yatay ürün logosu (`min(640px,86vw)`, `max-height:210px`; kırılımlar 480/380/300), arkada
+  ortalı büyük RENKLİ kurum filigranı (`opacity:.14`, filtre yok — önceki silik/sola-yaslı
+  filigranın yerine), kart yarı saydam beyaz zemin + blur alır (`rgba(255,255,255,.86)` +
+  `backdrop-filter:blur(2px)`); ≤820px'te filigran gizlenir.
+- **Validasyon ifadesi politikası** (docs/02 §1, §7): "bağımsız klinisyen doğrulaması yok"
+  türü cümleler kaldırıldı; standart cümle "Simülatörün tüm tıbbi içerik ve [sinyal/ses]
+  validasyonları {{KURUM_ADI}} [Anabilim Dalı] öğretim üyelerince yapılmıştır." landing kartı,
+  Hakkında ("Validasyon, sınırlılıklar ve sorumluluk"), Yardım dialogu, kullanım belgesi ve
+  `sources.json`'da tutarlı biçimde uygulanır; kullanım uyarısı cümlesi ("klinik tanı için
+  kullanılmaz") AYRI ve KORUNUR.
+- **Landing ortam sesi** (docs/02 §1, `components/sound-toggle.html`, `snippets/landingSound.js`):
+  ürün karakterine uygun düşük sesli döngü (Pulse: WebAudio monitör bipi, 75/dk, look-ahead
+  zamanlama), üst çubukta "Ses açık/kapalı" düğmesi (`aria-pressed`), varsayılan açık,
+  `localStorage` kalıcılığı, otomatik oynatma kilidi ilk kullanıcı jestiyle açılır, yalnız
+  landing görünürken çalar.
+- **Tam ekran düğmesi metin etiketli** ("Tam ekran"/"Tam ekrandan çık"), uygulama header'ında
+  VE landing'de aynı mantıkla senkron (docs/04 §1.5).
+- **Tıklama hedefi kararlılığı** (docs/04 §9, docs/06 §19, `snippets/stableRender.js`,
+  `tests/click-stability.template.mjs`): periyodik render döngüsüyle güncellenen hiçbir
+  görünüm, içerik değişmediği sürece tıklanabilir öğeleri `innerHTML` ile yeniden KURMAZ
+  (`dataset.rendered` karşılaştırması) ve tıklamalar konteynerde TEK bir delege dinleyiciyle
+  yakalanır (`dataset.bound`) — mod seçim kartlarındaki 250 ms'lik ilerleme döngüsünün
+  tıklamaları "yutması" bu şekilde giderildi. Kabul testi: bas → 300 ms bekle → imleci dışarı
+  taşı → bırak; mod kartlarında 20 ardışık deneme, 20/20 beklenir.
+- Hakkında rollerindeki yer tutucu isimler için boş baş harf avatarı artık "…" gösterir (gerçek
+  bir kişi baş harfiyle karışmasın diye) — docs/02 §7.
+
 ---
 
-Bu şablon deposu (**EGEMED SIM FRAMEWORK**) v1.3 durumunu tek commit olarak yakalar;
+Bu şablon deposu (**EGEMED SIM FRAMEWORK**) v1.5 durumunu tek commit olarak yakalar;
 gelecekteki Pulse turları veya Ausculta/Opaca'dan geri gelen genelleştirilebilir kurallar
 bu CHANGELOG'a yeni bir sürüm satırı olarak eklenmelidir.

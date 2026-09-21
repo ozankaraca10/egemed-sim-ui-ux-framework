@@ -1,0 +1,94 @@
+<!--
+  EGEMED SIM FRAMEWORK — bileşen: Landing (kurum satırı + büyük ürün logosu + filigran)
+  ============================================================================================
+  Kaynak: cardai/index.html <section class="landing" id="landingPage"> (satır 4) +
+  cardai/styles.css .landing-seal/.landing-card/.landing-inst/.landing-logo (Tur 5 —
+  21 Eylül 2026 yeniden düzenlemesi). Önceki (Tur ≤4) kompozisyon: docs/01-tasarim-sistemi.md
+  §5.3 "Neden" bölümünde karşılaştırmalı olarak anlatılır.
+
+  NEDEN
+  -----
+  Tam gerekçe: docs/01-tasarim-sistemi.md §5.3. Özet: kurum kimliği ÜSTTE küçük+net bir
+  satırda ("bunu kim sağlıyor"), ürün logosu BÜYÜK ve ana görsel odak ("bu ne"), kurum
+  filigranı arkada büyük+renkli bir marka katmanı (dekoratif, ≤820px'te gizlenir). Kart
+  filigranın üstünde okunaklı kalması için yarı saydam beyaz zemin + hafif blur alır.
+
+  Bu dosya yalnız landing'in MARKA/KOMPOZİSYON iskeletini taşır; "Neden güvenilir?" kutuları,
+  validasyon cümlesi, ses düğmesi ve tam ekran önerisi dialogu için bkz.
+  docs/02-ekranlar.md §1 (Landing), components/sound-toggle.html, components/dialog.html.
+
+  PULSE'TA NEREDE
+  ----------------
+  cardai/index.html satır 4 (`<section class="landing">` bloğunun tamamı);
+  cardai/styles.css `.landing-seal`, `.landing-card`, `.landing-inst`, `.landing-inst-text`,
+  `.landing-logo` (+ üç duyarlı kırılım: 1000–820px yükseklik, ≤700px genişlik, ≤600px
+  yükseklik). Kanıt: qa/evidence/mode-flow/landing-1366.png, landing-390.png.
+
+  ÜRÜN-BAĞIMSIZ KULLANIM
+  ------------------------
+  {{KURUM_AMBLEMI}}/{{KURUM_ADI}} = kurum logosu + adı (TÜM ürünlerde AYNI kaynak);
+  {{URUN_LOGOSU_YATAY}} = ürüne özgü yatay tam logo (Pulse: pulse-horizontal-full-1536x512.png);
+  {{URUN_ADI}}, {{URUN_SLOGANI}}; {{BASLIK}} = tek satırlık değer önerisi (bkz. docs/02 §1
+  "Neden başlık tek satır olmalı"); {{OGE_TERIMI_COGUL}} = "EKG sonucu" (Pulse) |
+  "ses kaydı" (Ausculta, öneri) | [Opaca: belirlenecek].
+-->
+<section class="landing" id="landingPage" aria-labelledby="landingTitle">
+  <header class="topbar">
+    <a class="eg-brand" href="#landingPage" aria-label="EGEMED {{URUN_ADI}} ana sayfa">
+      <img class="eg-brand-icon" src="assets/egemed-{{urun-slug}}-favicon.png" alt="">
+      <span class="eg-brand-copy"><small>EGEMED</small><strong>{{URUN_ADI}}<sup class="tm" aria-hidden="true">™</sup></strong></span>
+      <span class="eg-brand-tag">{{URUN_SLOGANI}}</span>
+    </a>
+    <div class="spacer"></div>
+    <nav class="landing-nav" aria-label="Yardım ve bilgi">
+      <button class="eg-navbtn" id="landingFullscreen" type="button" aria-label="Tam ekrana geç" title="Tam ekran">
+        <svg class="ico" id="landingFullscreenIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+        <span class="lbl">Tam ekran</span>
+      </button>
+      <span class="divider-v" aria-hidden="true"></span>
+      <!-- bkz. components/sound-toggle.html -->
+      <span class="divider-v" aria-hidden="true"></span>
+      <button class="eg-navbtn" id="landingHelp" type="button"><span class="lbl">Yardım</span></button>
+      <button class="eg-navbtn" id="landingAbout" type="button"><span class="lbl">Hakkında</span></button>
+    </nav>
+  </header>
+  <main class="landing-main">
+    <!-- Katman 1: arka planda büyük, RENKLİ, ortalı kurum filigranı (dekoratif; ≤820px gizli) -->
+    <img class="landing-seal" src="{{KURUM_AMBLEMI}}" alt="" aria-hidden="true">
+    <div class="landing-card">
+      <!-- Katman 2: üstte küçük ve net kurum satırı ("bunu kim sağlıyor") -->
+      <img class="landing-inst" src="{{KURUM_AMBLEMI}}" alt="{{KURUM_ADI}}">
+      <span class="landing-inst-text">{{KURUM_ADI}}</span>
+      <!-- Katman 3: büyük, ana görsel odak ürün logosu ("bu ne") -->
+      <img class="landing-logo" src="{{URUN_LOGOSU_YATAY}}" alt="EGEMED {{URUN_ADI}} — {{URUN_SLOGANI}}">
+      <h1 id="landingTitle">{{BASLIK}}</h1>
+      <p class="landing-lead"><!-- canlı sayılarla JS'ten doldurulur — bkz. docs/02 §1 --></p>
+      <button class="landing-start" id="startSimulator">Simülatörü başlat <span aria-hidden="true">→</span></button>
+      <p class="landing-links">
+        <button class="text-btn" id="landingHow" type="button">Nasıl kullanılır?</button>
+        <span class="landing-link-sep" aria-hidden="true"></span>
+        <button class="text-btn" id="landingAboutLink" type="button">Hakkında ve kaynaklar</button>
+      </p>
+      <p class="landing-why">NEDEN GÜVENİLİR?</p>
+      <div class="landing-features why-grid" id="landingFeatures"><!-- bkz. docs/02 §1 validasyon ifadesi politikası --></div>
+      <p class="landing-note">Sinyaller sentetik öğretim şemalarıdır; klinik tanı için kullanılmaz.</p>
+    </div>
+  </main>
+  <footer class="eg-footer" id="landingFooter"><!-- bkz. components/footer.html — tek kaynaktan klonlanır --></footer>
+</section>
+
+<style>
+/* Kaynak: cardai/styles.css .landing-* (özet — tam kural seti docs/01 §5.3) */
+.landing-main{position:relative;flex:1;min-height:0;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px 24px 22px}
+.landing-seal{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(78vh,60vw);max-width:720px;height:auto;opacity:.14;filter:none;pointer-events:none;z-index:0}
+.landing-card{position:relative;z-index:1;width:min(880px,94vw);display:flex;flex-direction:column;align-items:center;text-align:center;background:rgba(255,255,255,.86);backdrop-filter:blur(2px);border-radius:var(--r-lg);padding:10px 28px}
+.landing-inst{height:96px;width:auto;object-fit:contain;margin-top:8px}
+.landing-inst-text{display:block;margin:4px 0 6px;color:var(--ink-700);font-size:var(--fs-sm);font-weight:750;letter-spacing:.3px}
+.landing-logo{width:min(640px,86vw);max-height:210px;height:auto;object-fit:contain}
+.landing h1{max-width:780px;margin:6px 0 0;color:var(--navy-800);font-size:clamp(26px,3vw,40px);line-height:1.14;letter-spacing:-.8px}
+@media(max-width:1024px){.landing-inst{height:72px}}
+@media(max-width:820px){.landing-seal{display:none}}
+@media(max-height:820px) and (min-width:1000px){.landing-logo{max-height:160px;width:min(480px,55vw)}}
+@media(max-width:700px){.landing-logo{width:min(380px,72vw);max-height:130px;height:auto}}
+@media(max-height:600px) and (min-width:701px){.landing-logo{max-height:100px;width:min(300px,34vw)}}
+</style>

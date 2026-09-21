@@ -33,6 +33,59 @@ biçiminde kısaltılarak tek satıra indirildi.
 "Tam ekran önerilir" popup'ı gösterilir — bkz. docs/04-etkilesim-ve-erisilebilirlik.md ve
 `snippets/fullscreenPrompt.js`.
 
+**Landing marka kompozisyonu (Tur 5):** kurum amblemi/metni, büyütülmüş ürün logosu ve renkli
+arka plan filigranının hiyerarşisi — bkz. docs/01-tasarim-sistemi.md §5.3 ve
+`components/landing.html`.
+
+**Validasyon ifadesi politikası (Tur 5):** "Bağımsız klinisyen doğrulaması yok" / "bağımsız
+doğrulama yok" TÜRÜ cümleler landing'de (ve aile genelinde, bkz. aşağıdaki kutu) KULLANILMAZ.
+Bunun yerine, ürünün tıbbi içeriğinin/sinyallerinin kimin tarafından doğrulandığını AÇIKÇA
+belirten TEK bir standart cümle kullanılır: "Simülatörün tüm tıbbi içerik ve
+[sinyal/ses] validasyonları {{KURUM_ADI}} [Anabilim Dalı] öğretim üyelerince yapılmıştır."
+(kısa biçimi: "… öğretim üyelerince valide edilmiştir."). Kullanım uyarısı cümlesi ("Sinyaller
+sentetik öğretim şemalarıdır; klinik tanı için kullanılmaz.") bundan AYRIDIR ve KORUNUR — biri
+"kim doğruladı" sorusuna, diğeri "bunu nasıl kullanmamalıyım" sorusuna cevap verir; ikisi
+birbirinin yerine geçmez.
+
+**Neden bu cümle değişti:** "Bağımsız doğrulama yok" ifadesi teknik olarak doğru olsa da,
+kullanıcıya İÇERİĞİN HİÇ doğrulanmadığı izlenimini veriyordu — oysa içerik kurum-içi uzman
+öğretim üyelerince gözden geçirilip düzeltilmişti (bkz. docs/03 §9 dış QC döngüsü). Politika,
+"doğrulama YOK" (olumsuz, güven kırıcı) yerine "kim doğruladı" (olumlu, doğrulanabilir atıf)
+söylemine geçer — hem daha dürüst (gerçek QC sürecini yansıtır) hem daha güven vericidir.
+Kullanım uyarısı cümlesi bu değişiklikten ETKİLENMEZ çünkü o farklı bir soruyu (klinik kullanım
+sınırı) yanıtlar.
+
+**Pulse'ta nerede:** `cardai/landing.js` (`landingFeatures`/"Neden güvenilir?" kutusu),
+`cardai/curriculum.js limitations` alanı, `cardai/index.html #infoDialog` (Yardım dialogu),
+`cardai/KULLANIM.md` (satır ~3/42/67), `cardai/features.js limitationsBox()`/`institutionCard()`
+başlığı ("Sınırlılıklar" → "Validasyon, sınırlılıklar ve sorumluluk"), `cardai/sources.json`
+`module.description`. Standart cümle Pulse'ta: "… Ege Üniversitesi Tıp Fakültesi Kardiyoloji
+Anabilim Dalı öğretim üyelerince yapılmıştır." Kanıt: `qa/evidence/mode-flow/
+about-validation.png`.
+
+**Landing ortam sesi (Tur 5):** Landing'de, ürünün karakterine uygun DÜŞÜK sesli, döngüsel bir
+ortam sesi çalabilir (Pulse: WebAudio ile sentetik monitör "bip"i, 75 vuru/dk). Üst çubukta
+bir "Ses açık/kapalı" düğmesi bulunur (`aria-pressed`), varsayılan AÇIKTIR, tercih
+`localStorage`'a kalıcı yazılır. Tarayıcı otomatik oynatma kilidini (autoplay policy)
+kullanıcının İLK jestinde (tıklama/tuş) açar — sayfa yüklenir yüklenmez zorla ses ÇALINMAZ
+(tarayıcılar bunu zaten engeller). Ses YALNIZ landing görünürken çalar; uygulamaya girildiğinde
+veya sekme gizlendiğinde DURUR.
+
+**Neden:** Sessiz bir landing "burada bir şey çalışıyor mu" belirsizliği bırakabilir; ürünün
+alanına özgü düşük sesli bir ipucu (monitör bipi, kalp sesi vb.) markayı daha "canlı" hissettirir
+— ama bu bir TERCİHTİR, dayatma değildir: varsayılan açık olsa da düğme her zaman görünür ve
+kapatma kalıcıdır (aynı cihazda tekrar sorulmaz). Ses yalnız landing'de çalışıp uygulamaya
+geçince durması, öğrenme ekranlarında dikkat dağıtan bir arka plan sesi BIRAKMAMAK içindir.
+
+**Pulse'ta nerede:** `cardai/landing.js` — `SOUND_KEY='pulse.landingSound'`, `BEAT_SEC=0.8`
+(75/dk), `TONE_HZ=880`, `scheduleBeat()`/`schedulerTick()` (look-ahead zamanlamalı WebAudio
+osilatör), `startMonitorSound()`/`stopMonitorSound()`/`syncMonitorSound()`,
+`attemptAudioUnlock()` (`pointerdown`/`keydown` ile kilidi açar), `CardAILanding.soundState()`
+(tanılama). Düğme: `#landingSound` (`cardai/index.html`), bileşen: `components/sound-toggle.html`,
+tam kod: `snippets/landingSound.js`. Kabul testi: `qa/mode_flow_audit.mjs` "L4-sound-toggle-off",
+"L4-sound-pref-persists", "L4-sound-state-diagnostics". Kanıt:
+`qa/evidence/mode-flow/landing-sound-on.png`.
+
 ---
 
 ## 2. Mod seçimi
@@ -158,6 +211,26 @@ verilir ama açıklama cümlesi YAZILMAZ (gereksiz metin, pill rozet zaten bağl
 
 **Pulse'ta nerede:** `cardai/index.html` `#aboutView`; `cardai/features.js renderAbout()`,
 `institutionCard()`, `referenceCards()`, `limitationsBox()`; veri kaynağı `cardai/sources.json`.
+
+**Geliştirici rolleri ve yer tutucular (Tur 4/5):** Geliştirici grupları üç ROLE ayrılır —
+"Yazılım geliştirme, öğretim ve ölçme-değerlendirme tasarımı" / "Öğretim Tasarımı ve Tıbbi
+Danışmanlık" / "Tıbbi İçerik Validasyonu". Üçüncü grup, isimleri henüz netleşmemiş kişiler için
+yer tutucu isimlerle (Pulse: "Doç. Dr." × 4, bağlantısız) doldurulabilir; bu durumda kişi
+baş harfi avatarı BOŞ bırakılmaz, üç nokta ("…") gösterilir (gerçek bir isim baş harfi ile
+karıştırılmasın diye). **Neden:** Şeffaflık ilkesi (yukarı bakınız) isim netleşmeden UYDURULMASINI
+gerektirmez — ünvan + rol bilgisini vermek ("bu rolü dolduracak N kişi var, kimlikleri
+netleşiyor") uydurma bir isimden daha DÜRÜSTTÜR; "…" avatarı bunun görsel karşılığıdır (gerçek
+bir kişinin baş harfi DEĞİL, "beklemede" sinyali). Bu, docs/07 "Terim tablosu" notundaki
+"UYDURMAYIN, kullanıcıdan isteyin" ilkesiyle aynı mantığı izler.
+
+**Pulse'ta nerede:** `cardai/sources.json credits[]` — üçüncü grup rolü "Kullanıcı kabul
+testleri" (öğrenci placeholder'ları) yerine "Tıbbi İçerik Validasyonu" (4× `{"name":"Doç.
+Dr."}`, `url` YOK) oldu; ikinci grubun rolü "Öğretim tasarımı ve tıbbi validasyon" →
+"Öğretim Tasarımı ve Tıbbi Danışmanlık" olarak yeniden adlandırıldı (validasyon sorumluluğu
+üçüncü gruba taşındığı için). `cardai/features.js initials(name)` — `.slice(0,2)` boş
+dönerse (`url`siz/başlıksız isim) `||'…'` ile boş baş harf avatarını "…" yapar. Sınırlılıklar
+başlığı "Sınırlılıklar" → "Validasyon, sınırlılıklar ve sorumluluk" (bkz. yukarıdaki
+validasyon ifadesi politikası).
 
 ---
 

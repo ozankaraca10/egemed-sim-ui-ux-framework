@@ -1,0 +1,45 @@
+<!--
+  EGEMED SIM FRAMEWORK — bileşen: Landing ses aç/kapa düğmesi
+  ================================================================
+  Kaynak: cardai/index.html landing topbar'ındaki `#landingSound` düğmesi
+  (satır ~1, Tur 5 — 21 Eylül 2026) + cardai/landing.js applySoundButton.
+
+  NEDEN
+  -----
+  - İkon TEK BAŞINA yeterli değildir: hoparlör ikonları (açık/kapalı/mute)
+    kullanıcılar arasında tutarlı yorumlanmaz. İkonun yanına metin etiketi
+    ("Ses açık"/"Ses kapalı") eklemek belirsizliği giderir — bkz.
+    docs/04-etkilesim-ve-erisilebilirlik.md §1.5 (aynı gerekçe tam ekran
+    düğmesi için de geçerlidir).
+  - `aria-pressed` durumu taşır (toggle button deseni); `aria-label` her
+    durumda düğmenin YAPACAĞI eylemi söyler ("Monitör sesini kapat" AÇIKKEN
+    gösterilir — düğme her zaman "buna basarsan ne olur"u anlatır, mevcut
+    durumu değil).
+  - Varsayılan AÇIK: ürünün alan sesi (Pulse: monitör bipi) markayı
+    güçlendiren bir öğedir; kullanıcı istemezse TEK tıkla kapatır ve tercih
+    kalıcı olur (bkz. snippets/landingSound.js).
+
+  PULSE'TA NEREDE
+  ----------------
+  cardai/index.html landing `<header class="topbar">` içinde `#landingSound`
+  (Tam ekran düğmesi ile Yardım düğmesi arasında); cardai/landing.js
+  `applySoundButton(on)`, `$('landingSound').addEventListener('click',...)`.
+
+  ÜRÜN-BAĞIMSIZ KULLANIM
+  ------------------------
+  {{SES_ACIK_MI}} = başlangıç durumu (varsayılan true); ikon içeriği
+  snippets/landingSound.js SOUND_ICON.on/off ile senkron tutulur. Ürünün
+  ortam sesi karakteri değişir (Pulse: monitör bipi, Ausculta: normal kalp
+  sesi döngüsü) — düğme markup'ı ve davranışı AYNI kalır.
+-->
+<button class="eg-navbtn" id="landingSound" type="button" aria-pressed="{{SES_ACIK_MI}}" aria-label="Monitör sesini kapat">
+  <svg class="ico" id="landingSoundIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M4 9v6h4l5 5V4L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19 6a9 9 0 0 1 0 12"/>
+  </svg>
+  <span>Ses açık</span>
+</button>
+
+<style>
+/* Kaynak: cardai/styles.css .eg-navbtn (paylaşılan üst çubuk düğme stili — yeni sınıf gerekmez) */
+#landingSound[aria-pressed="false"] .ico{opacity:.6}
+</style>
