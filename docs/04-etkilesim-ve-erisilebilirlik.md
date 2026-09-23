@@ -234,3 +234,113 @@ başarı beklenir. Test kalıbı: `tests/click-stability.template.mjs` (Pulse'ta
 `scratchpad/click_stability.mjs`'in ürün-bağımsızlaştırılmış hâli — her görünümdeki tüm
 görünür/etkin düğmeleri basıp 300 ms bekleyip bırakarak DOM bağlantısının ve tıklama
 hedefinin korunduğunu doğrular).
+
+**Ausculta/Opaca'da nerede (React — uygulama mekanizması FARKLI, kabul testi AYNI):** İki
+ürün de vanilla-DOM `innerHTML` yeniden kurma kalıbını KULLANMAZ (React'in kendi
+reconciliation'ı `key` sabit kaldığı sürece aynı DOM düğümünü genelde KORUR); bu nedenle bu
+maddenin UYGULAMA kısmı (`dataset.rendered`/`dataset.bound` kalıbı) React tabanlı ürünlere
+DOĞRUDAN uygulanamaz — **uygulanamaz: React reconciliation farklı bir garanti veriyor**. Ama
+KABUL TESTİ aynı riski (periyodik bir zamanlayıcı/durum güncellemesi bir düğmeyi basılıyken
+DOM'dan söküyor mu) React'te de SINAMALIDIR ve ikisi de bunu yapar: Ausculta
+`scripts/e2e-click-stability.mjs` (123 satır — `slowClick()` satır 26–34: `mousedown` →
+300 ms bekle → opsiyonel imleç kaydırma → `mouseup`; mod kartlarında 20 tekrar) ve Opaca
+(aynı ad) `scripts/e2e-click-stability.mjs` (265 satır — aynı 300 ms/20 tekrar deseni,
+ayrıca `moveAway` ile imleç-dışına-taşıma probu, satır 1–18 yorum bloğu).
+
+---
+
+## 10. Lokalizasyon — sabit yarıçaplı işaret dairesi, isabet ölçütü, kutu-alanı eşiği (v1.6 — yeni)
+
+**Kural:** Bir "bulguyu görüntü üzerinde işaretle" (lokalizasyon) sorusunda: (1) öğrencinin
+işareti SABİT yarıçaplı bir daire olarak gösterilir (görüntünün kısa kenarına ORANLI, piksel
+sabiti DEĞİL — böylece yakınlaştırma/farklı çözünürlükte tutarlı kalır); (2) İSABET, işaretin
+hem uzman kutusunun İÇİNDE OLMASI **VE** işaret merkeziyle kutu merkezi arasındaki uzaklığın
+kutunun yarı köşegeninin **%60'ını AŞMAMASI** ile tanımlanır (yalnız "kutunun içinde" yetmez —
+kutunun UZAK bir köşesine teğet geçen bir işaret de isabet SAYILMAZ); (3) uzman kutusunun
+alanı görüntünün **%35'inden BÜYÜKSE**, o bulgu için lokalizasyon sorusu HİÇ ÜRETİLMEZ (yerine
+bulgu tanıma sorulur) — çok büyük bir kutuda "isabet" neredeyse GARANTİDİR, ölçme değeri
+YOKTUR; (4) yanıt açıldığında (geri bildirim), öğrencinin işareti hedefi KAÇIRMIŞSA, uzman
+kutusu ayrıca gösterilir VE ıskalayan işaretten en yakın uzman kutusu merkezine bir ok/çizgi
+çizilir — "ne kadar uzak" bilgisini VERİR ama mm/piksel gibi kesin bir ölçü İDDİA ETMEZ
+(yalnız yüzde/konum).
+
+**Neden:** Sabit yarıçaplı daire, öğrencinin işaretinin "büyüklüğünü" DEĞİL yalnız
+"konumunu" ölçmeyi sağlar — değişken bir yarıçap (ör. sürüklenerek büyütülen bir alan)
+öğrenciye "ne kadar büyük işaretlersem o kadar güvenli" gibi YANLIŞ bir strateji öğretir.
+İsabet ölçütünün "kutu içi VE merkeze yakın" olması (yalnız "kutu içi" DEĞİL), büyük/geniş
+kutularda kenardan teğet geçen rastgele bir tıklamanın DOĞRU sayılmasını ENGELLER — eski bir
+sabit-piksel kenar toleransı yaklaşımı bu ayrımı yapamıyordu. %35 kutu-alanı eşiği, "her yer
+zaten doğru cevap" durumunda soruyu HİÇ SORMAMAYI tercih eder — bu, docs/03 §2'deki (seçenek
+permütasyonu) "tahmin edilebilirliği önle" ilkesinin GÖRSEL/UZAMSAL muadilidir. Iskalama
+oku ise geri bildirimi "doğru/yanlış" ikiliğinden çıkarıp YÖNLENDİRİCİ hâle getirir — öğrenci
+NE KADAR ve HANGİ YÖNDE yanıldığını görür, ama sahte bir kesinlik (mm cinsinden mesafe)
+İDDİA EDİLMEZ.
+
+**Opaca'da nerede:** `src/core/geometry.ts` — `MAX_LOCALIZATION_BOX_AREA = 0.35` (satır 20),
+`MARK_RADIUS_SHORT_EDGE_FRACTION = 0.08` (satır 23), `markRadiusNorm(image)` (satır 27–32 —
+görüntü kare değilse eksen başına farklı normalize yarıçap, ekranda gerçek daire için),
+`MARK_CENTER_DISTANCE_FRACTION = 0.6` (satır 37), `markHitsBox(p, b)` (satır 39–47 — önce
+`inBox` kontrolü, sonra `dist <= halfDiag * MARK_CENTER_DISTANCE_FRACTION`),
+`markHitsFinding(p, image, finding)` (satır 50–53), `nearestFindingBoxCenter(p, image,
+finding)` (satır 57–72 — en yakın uzman kutusu merkezi, ıskalama oku için). Görselleştirme:
+`src/ui/FilmViewer.tsx` — `markRadius = markRadiusNorm(image)` (satır 424),
+`markMissTarget` (satır 428–431 — `showAnnotations && !strict && mark && annotationFinding
+&& !markHitsFinding(...)` ise `nearestFindingBoxCenter` çağrılır), ok çizimi `<line
+className="mark-miss-line">` + `<marker id="mark-miss-arrow">` (satır 496–509), işaret
+dairesi `<span className="film-mark-circle">` (satır 511–528, `width/height` yüzdesi
+`markRadius.rx/ry * 2 * 100` ile). Klavye erişilebilirliği: ok tuşlarıyla daire taşınabilir
+(`MARK_KEY_STEP=0.02`, satır 316), konum `aria-live` ile duyurulur (`markAnnounce`, satır 87,
+330, 372).
+
+---
+
+## 11. Kesit yığını görüntüleyici (BT) (v1.6 — yeni)
+
+**Kural:** Birden çok kesitli (BT gibi) bir görüntüleyicide: (1) kesitler İSTEMCİ TARAFINDA
+serbest HU pencerelemesiyle DEĞİL, ÖNCEDEN RENDER EDİLMİŞ pencere setleriyle (ör. Akciğer,
+Mediasten) sunulur — kullanıcı yalnız İKİ sabit ön ayar arasında seçer, "Kemik"/"Standart" gibi
+diğer ön ayarlar BT yığınında GÖSTERİLMEZ (bu pencereler için kare RENDER EDİLMEMİŞTİR);
+"Parlaklık/Kontrast" özel ayarı bu ÖNCEDEN RENDER EDİLMİŞ kareler üzerine bir CSS filtresi
+olarak eklenmeye DEVAM EDER (pencere seçimiyle ÇİFT PENCERELEME yapılmaz — CSS filtresi ayrı
+bir katmandır, pencere ön ayarının kendisini DEĞİŞTİRMEZ). (2) Fare tekerleği/ok tuşları, tek
+kareli görüntülerdeki gibi YAKINLAŞTIRMA/kaydırma yerine KESİT GEZİNİR (yığın varsa); (3) uzman
+işaretlemeleri (nodül konturu vb.) YALNIZ KENDİ KESİTİNDE görünür — bir işaretin hangi kesit
+ARALIĞINDA olduğu, işaretin görünür OLMADIĞI kesitlerde bile kısa bir "işaret: kesit a–b"
+ipucuyla belirtilir (öğrenci "kayboldu" hissetmez, doğru kesit aralığına yönlendirilir); (4)
+radyolog OKUYUCULARIN öznel morfoloji puanları (spikülasyon, lobülasyon, kenar, doku, şekil,
+kalsifikasyon — 1–5/6 ölçek) GÖSTERİLİR ama **malignite/"olasılık" hiçbir biçimde
+GÖSTERİLMEZ** ve puanların yanına "patoloji doğrulaması YOKTUR; tanı ya da malignite olasılığı
+olarak YORUMLANMAMALIDIR" notu EKLENİR; (5) bu seriden VAKA veya SORU ÜRETİLMEZ — yalnız
+öğrenme modunda, sistematik BT okumasını TANITMAK için kullanılır.
+
+**Neden:** Serbest HU pencereleme, gerçek bir radyoloji iş istasyonu özelliğidir ama bir
+öğretim simülatöründe hem UYGULAMA MALİYETİ yüksektir (her pencere kombinasyonu için render
+veya gerçek zamanlı GPU işleme gerekir) hem de ölçmek istenen beceriyle (sistematik okuma,
+bulgu tanıma) DOĞRUDAN İLGİLİ DEĞİLDİR — bu yüzden bilinçli olarak İKİ sabit, öğretim açısından
+ANLAMLI ön ayarla SINIRLANIR. İşaretlerin yalnız kendi kesitinde görünmesi ANATOMİK
+DOĞRULUKTUR (bir nodül her kesitte AYNI YERDE değildir); "işaret: kesit a–b" ipucu ise bunun
+kullanıcı deneyimi MALİYETİNİ (öğrenci işareti "kaybetti" sanıp yığını rastgele TARAR) telafi
+eder. Malignite/olasılık GÖSTERİLMEMESİ kritik bir tıbbi-etik sınırdır: LIDC-IDRI okuyucu
+puanları PATOLOJİK DOĞRULAMA İÇERMEZ (biyopsi/cerrahi sonucu yoktur) — bu öznel puanları
+"olasılık" gibi sunmak, öğrenciye YANLIŞ bir kesinlik duygusu verir ve DOĞRULANMAMIŞ bir
+tıbbi iddiayı simülatörün ağzından SÖYLETMİŞ olur. Aynı nedenle bu seriden vaka/soru ÜRETİLMEZ
+— DOĞRULANMAMIŞ bir "doğru cevap" ÖLÇME aracı OLAMAZ.
+
+**Opaca'da nerede:** `src/ui/FilmViewer.tsx` — `stackWindow` (satır 97, `preset===
+'mediastinum' ? 'mediastinum' : 'lung'`), `stackFrames`/`hasMultiSliceStack` (satır 98–99),
+`isCtStack`/`presetOptions` (satır 392–393 — `WINDOW_PRESETS.filter(x=>x.id==='lung'||
+x.id==='mediastinum')`), kesit gezinme: fare tekerleği (satır 303–307, `hasMultiSliceStack`
+ise `setSliceIndex` — YAKINLAŞTIRMA yerine), ok tuşları (satır 334–338). İşaretlerin
+kesite bağlılığı: `annotations` (satır 413–415 — `a.frameIndex==null || a.frameIndex===
+clampedSlice`), "işaret: kesit a–b" ipucu (satır 541–545 — `annotatedSlices.length>0 &&
+annotations.length===0` iken, yani mevcut kesitte GÖRÜNMEYEN ama yığında BAŞKA kesitte var
+olan bir işaret varken). Radyolog puanları + uyarı: `src/ui/FilmInfoPanel.tsx` —
+`LIDC_SCALES` (satır 124–131, yalnız spikülasyon/lobülasyon/kenar/doku/şekil/kalsifikasyon;
+`malignancy`/`subtlety` KASITLI OLARAK LİSTEDE YOK — satır 121–123 yorum: "patoloji
+doğrulaması olmayan öznel izlenimdir, öğrenci tarafından tanı/olasılık olarak
+okunabilir"), `CtInfoPanel` (satır 133–191) "Okuyucu morfoloji puanları" bloğunda satır
+178–180: "LIDC-IDRI okuyucularının öznel ölçek puanlarıdır; patoloji doğrulaması yoktur. Tanı
+ya da malignite olasılığı olarak yorumlanmamalıdır." Vaka/soru üretilmemesi:
+`scripts/import-tcia.mjs` satır 9 ("BT kayıtları yalnız ÖĞRENME içindir:
+generate-cases.mjs modality === 'CT' kayıtlardan vaka üretmez"); `FilmInfoPanel.tsx` satır
+184–187 ("Kullanım" satırı: "Yalnız öğrenme modunda; bu seriden vaka veya soru üretilmez.").

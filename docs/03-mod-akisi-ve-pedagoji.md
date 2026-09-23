@@ -85,11 +85,20 @@ Değerlendirme sorusundayken "1" tuşuna basmak İnceleme moduna GEÇMEMELİDİR
 moda kısayolla "kaçış" sağlanmamalı, ayrıca yanlışlıkla mod değişimi önlenir). (b) Vaka/soru
 kanvasının DOM'unda (`data-*` özniteliklerinde) o maddenin hangi MOD/TANI ile ilişkili
 olduğunu açık eden bir bilgi BULUNMAZ — tarayıcı geliştirici araçlarını açan bir öğrenci
-`data-mode="af"` gibi bir öznitelik görüp cevabı DOM'dan okuyabilmemelidir.
+`data-mode="af"` gibi bir öznitelik görüp cevabı DOM'dan okuyabilmemelidir. (c) **(v1.6 —
+yeni)** Dağıtılan paketteki MEDYA DOSYA ADLARI/KLASÖR YAPISI da bulguyu ele vermez — bir
+kayıt/görüntü dosyasının adı veya bulunduğu klasör, o kaydın hangi bulguya/tanıya ait
+olduğunu (ör. `heart/f_esm_lusb.wav` içindeki "esm" = erken sistolik üfürüm) DOĞRUDAN
+OKUNABİLİR biçimde taşımaz; tarayıcının Ağ (Network) sekmesini açan bir öğrenci, sıradaki
+istenen dosyanın ADINDAN cevabı ÖNCEDEN çıkaramamalıdır.
 
-**Neden:** İki farklı sızıntı yüzeyi kapatılıyor: davranışsal (kısayol → kaçış) ve yapısal
-(DOM özniteliği → cevap okuma). İkisi de "kullanıcı arayüzü normal şekilde kullanmadan
-bilgi edinme" sınıfına girer.
+**Neden:** ÜÇ farklı sızıntı yüzeyi kapatılıyor: davranışsal (kısayol → kaçış), yapısal (DOM
+özniteliği → cevap okuma) ve **paketleme/ağ düzeyinde** (dosya adı/klasör → cevap okuma).
+Üçü de "kullanıcı arayüzü normal şekilde kullanmadan bilgi edinme" sınıfına girer — (c),
+diğer ikisinden farklı olarak DOM/JS katmanında DEĞİL, `dist/` çıktısının kendisinde
+(derleme sonrası varlık adlandırmasında) yaşayan bir sızıntıdır; bu yüzden kaynağı
+kod incelemesiyle değil, üretim PAKETİNİN (SCORM zip/HTML çıktısı) kendisini denetleyerek
+bulunur.
 
 **Pulse'ta nerede:**
 - (a) `cardai/features.js` global `keydown` dinleyicisi: `inSim = ['sim','tutorial'].includes(state.activeView)`
@@ -98,6 +107,22 @@ bilgi edinme" sınıfına girer.
 - (b) `cardai/app.js` `drawItemECG()` — satır sonunda `cv.dataset.mode=item.ecg.mode;`
   ataması **KALDIRILDI**; yalnız `cv.dataset.itemId` ve `cv.dataset.leads` kalır (madde
   kimliği ve derivasyon seçimi "ipucu" değildir, mod/tanı bilgisi ipucudur).
+
+**Ausculta'da nerede (c — v1.6):** `scripts/lib/obfuscate-audio.mjs` (95 satır) —
+`obfuscateAudioInDist(distDir)` (satır 29), `vite build` TAMAMLANDIKTAN SONRA, paketleme
+(`build-html.mjs`/`build-scorm.mjs`) ÖNCESİNDE `dist/`i post-process eder: her
+`assets/audio/runtime/**/*.wav` dosyası, içeriğinin sha1 özetinin ilk 12 hex karakteriyle düz
+`assets/audio/r/<hash>.wav` olarak KOPYALANIR (satır 51–65 — kategori klasörü
+`heart/lung/mixed/external` de KALDIRILIR, çünkü kategori klasörü de bir ipucudur), `dist/`
+altındaki TÜM metin dosyalarında (JS paketi dahil) eski göreli yol yeni opak yolla
+DEĞİŞTİRİLİR (satır 68–92 — gerçek dosya listesinden çıkarılan haritayla tam-dizge ikamesi,
+regex tahmini DEĞİL), ve eski `assets/audio/runtime/` klasörü SİLİNİR (satır 66). Yalnız
+ÜRETİM paketleri için çalışır; `npm run dev` ve paketlenmemiş düz `npm run build` kaynak
+`public/`e dokunmaz — geliştirmede okunabilir adlar KALIR (satır 25–27). Tetikleyici kanıt:
+üretim paketlerinde (`release/EGEMED-Ausculta-HTML(.zip)`,
+`dist/EGEMED-Ausculta-SCORM12.zip`) eski ses dosyası adları Değerlendirme modunda tarayıcı
+Ağ sekmesinden sonraki kaydın bulgusunu ÖNCEDEN çıkarmayı mümkün kılıyordu (satır 6–11 —
+"F1 güvenlik düzeltmesi").
 
 ---
 
@@ -342,3 +367,90 @@ olduğunu doğrular. Tarayıcı testleri: `qa/mode_flow_audit.mjs`. Dışa aktar
 `qa/export_items.mjs` — `cardai/`i yalnız OKUYUP `qa/evidence/export/`e madde başına A–E seçenek
 harfleri + doğru harf/metin + kayıt görüntüsü üreten, tek komutla (`node
 qa/export_items.mjs`) tekrar üretilebilir bir betik.
+
+---
+
+## 10. Soru tekrarı ölçütü — görüntüye/kayda bağlı sorular ile bilgi soruları FARKLI kurala tabidir (v1.6 — yeni)
+
+**Kural:** Bir oturum (ör. 10 vakalık örneklem) içinde "aynı sorunun tekrarı" tek bir ölçütle
+DEĞİL, sorunun TÜRÜNE göre İKİ farklı imza ile ölçülür:
+- **Görüntüye/kayda bağlı sorular** (ör. bulgu tanıma, lokalizasyon, film/kayıt kalitesi):
+  imza = `tür|görüntüId(veya kayıtId)|doğru yanıt`. Bu tür sorular DOĞASI GEREĞİ her vakada
+  farklı bir görüntüden/kayıttan türer; aynı KALIPTA (ör. "Bu filmdeki ana bulgu hangisidir?")
+  ama farklı görüntüler üzerinde sorulmaları meşrudur — havuz düzeyinde "tekrar" SAYILMAZ.
+- **Bilgi soruları** (görüntüden/kayıttan bağımsız, ör. yorum/sonraki adım soruları): imza =
+  `tür|soru metni|doğru yanıt`. Asıl tekrar riski BURADADIR — aynı kütüphane şablonu birden
+  çok vakaya AYNEN kopyalanabilir. Bir bilgi sorusu VARYANTI, havuzda EN FAZLA 4 vakada
+  kullanılabilir; AYNI oturum içinde aynı bilgi sorusu İKİ KEZ çıkamaz (1000 rastgele tohumla
+  test edilir — bkz. aşağıda). Bulgudan bağımsız GENEL bir soru (ör. sistematik okuma sırası)
+  içeren vakaların oranı, havuzun EN FAZLA %10'u olabilir.
+
+**Neden:** Önceki (ilk) tanım TÜM soru türleri için AYNI imzayı (tür+soru metni+doğru yanıt)
+kullanıyordu — bu, görüntüye bağlı sorularda YANLIŞ POZİTİF üretiyordu: "Bu grafideki ana
+bulgu hangisidir?" gibi görüntüye ÖZGÜ ama aynı KALIPTA yazılan meşru sorular, farklı
+görüntüler üzerinde sorulsalar bile "tekrar" olarak İŞARETLENİYORDU (çünkü soru metni ve
+doğru yanıt metni benzer olabiliyordu) — bu, oturum örneklemesini GEREKSİZ YERE
+kısıtlıyordu. Görüntüye bağlı sorularda asıl kimlik GÖRÜNTÜdür (soru metni değil); bilgi
+sorularında ise asıl kimlik SORU METNİdir (görüntüden bağımsız oldukları için görüntü kimliği
+onları ayırt etmez). İki farklı imza, iki farklı "tekrar" tanımını doğru yerde uygular.
+
+**Opaca'da nerede:** `scripts/lib/case-selection.mjs` — `IMAGE_DEPENDENT_TYPES = new
+Set(['finding_identify','localization','film_quality'])` (satır 77), `KNOWLEDGE_QUESTION_CAP
+= 4` (satır 79), `GENERIC_QUESTION_MAX_RATIO = 0.1` (satır 81), `questionSignature(q,
+imageId)` (satır 89–93 — `IMAGE_DEPENDENT_TYPES.has(q.type)` ise `${type}|${imageId}|${correctKey}`,
+değilse `${type}|${q.prompt}|${correctKey}`), `createKnowledgeCapTracker(cap)` (satır 107–115
+— her bilgi sorusu varyantının kullanım sayacını tutar, tavan dolunca `false` döner),
+`genericQuestionRatio(cases)` (satır 118–122). `sampleSession(pool, seed, count)` (satır
+149–200) bu imzayı OTURUM İÇİ çakışma kontrolünde kullanır (`usedSignatures`,
+`collides`/`take`) ve son bir "onarım turu" (satır 188–198) ile kalan çakışmaları TEK TEK
+değiştirir. `src/core/session.ts`'teki tarayıcı-içi `sampleSession`/`questionSignature` bu
+dosyayla BİREBİR AYNI algoritmayı taşır (build-time betikleri TS'i tarayıcı paketine içe
+aktaramadığı için ayrıca tutulur — satır 65–66'daki not). Eski (ilk V2 turu) tanım
+`legacyQuestionSignature` (satır 96–102) yalnız RAPOR KARŞILAŞTIRMASI için korunur, artık
+kabul ölçütü DEĞİLDİR. Büyük ölçekli doğrulama: `scripts/audit-duplicates.mjs` — 1000 rastgele
+oturum tohumuyla `sampleSession`'ı çalıştırıp HİÇBİR oturumda bilgi sorusu imzası çakışması
+çıkmadığını, her bilgi sorusu varyantının havuzda ≤4 vakada kullanıldığını ve genel soru
+oranının ≤%10 olduğunu doğrular (hata durumunda çıkış kodu 1 — CI'da kırılabilir).
+
+---
+
+## 11. Güvenli çeldirici ilkesi — çeldirici yalnız "yok" olduğu KANITLANMIŞ bulgudan seçilir (v1.6 — yeni)
+
+**Kural:** Çoktan seçmeli bir maddenin çeldiricileri, RASTGELE veya "akla gelen" bulgulardan
+DEĞİL, o vaka için GÜVENLİ sayılan adaylardan seçilir. Bir bulgu, ancak şu somut
+işaretlerden BİRİ varsa "güvenli çeldirici adayı" sayılır: (1) uzman tarafından o filmde o
+bulgu için AÇIK bir NEGATİF kaydı var, (2) film uzman kaynaklı "normal" ise (tek pozitif
+bulgu normal olduğundan diğer HER ŞEY güvenlidir), (3) film uzman kaynaklı en az bir anormal
+bulguya sahipse "normal" güvenlidir (film normal DEĞİLDİR), (4) rapor (NLP) etiketleri varsa
+ve rapor o bulguyu İÇERMİYORSA, (5) radyolog okuma metni o bulgunun anahtar sözcüğünü HİÇ
+İÇERMİYORSA. Uzmanın/NLP'nin POZİTİF işaretlediği veya hiç veri bulunmayan (ne pozitif ne
+negatif) bir bulgu ASLA çeldirici OLAMAZ — belirsizlik güvenli sayılmaz. Güvenli adaylar
+arasında bir SIRALAMA (ayırıcı tanı önceliği) yapılır: birincil bulgunun klinik ayırıcı
+tanısında yer alan bulgular ÖNCE, kalanlar tohumlu rastgele sırada gelir — bu, "hiç alakasız"
+bir çeldirici yerine "klinik olarak makul ama yanlış" bir çeldirici tercih eder (ölçme
+değerini artırır). Son bir GÜVENLİK kapısı: bir vakanın TÜM seçmeli sorularının EN AZ 3
+seçeneği yoksa (tahminle doğru olasılığı ≤1/3 garantisi kurulamıyorsa), o vaka DEĞERLENDİRME
+havuzuna GİREMEZ — yalnız öğrenme/uygulamada kalır.
+
+**Neden:** Bir çeldiricinin "yanlış" olduğunu GARANTİ edemiyorsak (ör. o bulgu hakkında hiç
+veri yoksa, ne pozitif ne negatif), onu doğru cevap olarak İŞARETLEMEMEK madde güvenliğini
+BOZAR — öğrenci, aslında filmde VAR OLABİLECEK bir bulguyu "yok" seçeneği olarak görebilir.
+Bu yüzden çeldirici seçimi "akla gelen makul yanlış" değil, "yokluğu KANITLANMIŞ" bir
+kümeden yapılmalıdır. Ayırıcı tanı önceliği ayrı bir sorunu çözer: güvenli adaylar arasında
+rastgele seçim, çoğu zaman klinik olarak ALAKASIZ (ör. bambaşka bir organ sistemi) bir
+çeldirici üretir — bu, maddeyi kolaylaştırır (öğrenci "bariz yanlış" seçeneği elemekle
+doğruya ulaşır) ve asıl ölçülmek istenen BECERİYİ (yakın ayırıcı tanılar arasında seçim
+yapma) atlar. ≥3 seçenek kapısı ise şans başarısını (1/2 tahmin) DEĞERLENDİRME gibi sumatif
+bir bağlamda kabul edilemez KILAR — bu risk yalnız formatif (öğrenme/uygulama) bağlamda
+tolere edilebilir.
+
+**Opaca'da nerede:** `scripts/lib/case-selection.mjs` — `DIFFERENTIALS` haritası (satır
+244–256, ör. `tuberculosis: ['airspace_opacity','nodule_mass','normal','pleural_effusion',
+'emphysema']`), `safeDistractors(img, primary, teachingFindings)` (satır 269–285 — beş güvenlik
+kontrolü sırasıyla `img.negatives[f]`, `expertNormal`, `expertAbnormal`, `hasNlpReport`,
+`isMontgomery && readingFindings` üzerinden), `orderDistractorsByDifferential(candidates,
+primary, rnd)` (satır 290–296 — `DIFFERENTIALS[primary]`'deki sırayla önce, kalanı
+`seededShuffle` ile sonra), `MIN_ASSESSMENT_OPTIONS = 3` (satır 305),
+`hasEnoughOptions(q)`/`caseSelectableOk(questions)` (satır 309–316 — bu fonksiyon HEM
+`generate-cases.mjs` (mod kararı) HEM `validate-images.mjs` (ikinci savunma hattı) tarafından
+AYNI şekilde çağrılır — tek bir kapı, iki bağımsız uygulama noktası).

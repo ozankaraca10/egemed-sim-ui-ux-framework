@@ -33,9 +33,10 @@ biçiminde kısaltılarak tek satıra indirildi.
 "Tam ekran önerilir" popup'ı gösterilir — bkz. docs/04-etkilesim-ve-erisilebilirlik.md ve
 `snippets/fullscreenPrompt.js`.
 
-**Landing marka kompozisyonu (Tur 5):** kurum amblemi/metni, büyütülmüş ürün logosu ve renkli
-arka plan filigranının hiyerarşisi — bkz. docs/01-tasarim-sistemi.md §5.3 ve
-`components/landing.html`.
+**Landing marka kompozisyonu (v1.6 — bkz. docs/01-tasarim-sistemi.md §5.3):** Arka plandaki büyük
+renkli kurum filigranı üç üründen de kaldırılmıştır. Kartın üstündeki kurum amblemi + kurum satırı
+Pulse ve Ausculta'da korunur, Opaca'da ürüne özel kararla yoktur. `components/landing.html`
+amblem satırını isteğe bağlı blok olarak taşır.
 
 **Validasyon ifadesi politikası (Tur 5):** "Bağımsız klinisyen doğrulaması yok" / "bağımsız
 doğrulama yok" TÜRÜ cümleler landing'de (ve aile genelinde, bkz. aşağıdaki kutu) KULLANILMAZ.
@@ -63,8 +64,17 @@ başlığı ("Sınırlılıklar" → "Validasyon, sınırlılıklar ve sorumlulu
 Anabilim Dalı öğretim üyelerince yapılmıştır." Kanıt: `qa/evidence/mode-flow/
 about-validation.png`.
 
-**Landing ortam sesi (Tur 5):** Landing'de, ürünün karakterine uygun DÜŞÜK sesli, döngüsel bir
-ortam sesi çalabilir (Pulse: WebAudio ile sentetik monitör "bip"i, 75 vuru/dk). Üst çubukta
+**Landing ortam sesi (Tur 5; v1.6: ürün karakterine bağlı, ZORUNLU DEĞİL):** Landing'de,
+ürünün karakterine uygun DÜŞÜK sesli, döngüsel bir ortam sesi çalabilir (Pulse: WebAudio ile
+sentetik monitör "bip"i, 75 vuru/dk; Ausculta: kendi ürün karakterine uygun bir döngü —
+`src/ui/chrome.tsx` `LANDING_SOUND_KEY='ausculta.landingSound'`,
+`useLandingAmbientSound(state.screen==='start')`, aynı aç/kapa + `localStorage` kalıcılık
+kalıbı). Bu bir aile ZORUNLULUĞU DEĞİLDİR — Opaca'nın landing'inde (`src/screens/
+StartScreen.tsx`) hiçbir ortam sesi YOKTUR ve bu geçerli bir üründür: radyolojik görüntü
+okuma sessiz bir eylemdir, "ürün karakterine uygun ses" ölçütü Opaca için BOŞ kümedir —
+zorla bir ses eklemek yapay olurdu. Kural, "varsa nasıl davranmalı" (döngüsel, düşük sesli,
+aç/kapa düğmesi, `localStorage` kalıcı, yalnız landing'de çalar) tarifidir; "her ürün ses
+eklemeli" DEĞİLDİR. Üst çubukta
 bir "Ses açık/kapalı" düğmesi bulunur (`aria-pressed`), varsayılan AÇIKTIR, tercih
 `localStorage`'a kalıcı yazılır. Tarayıcı otomatik oynatma kilidini (autoplay policy)
 kullanıcının İLK jestinde (tıklama/tuş) açar — sayfa yüklenir yüklenmez zorla ses ÇALINMAZ
@@ -262,3 +272,39 @@ düğmesi eklerken, o düğmenin çıkış onayı gerektiren MEVCUT merkezi geç
 ()=>C.showView('about'))` → `()=>C.leaveFor('about'))` (Tur 1). Merkezi kapı:
 `cardai/app.js leaveFor(target)` — `if(state.activeView==='quiz'&&target!=='quiz'){
 pendingExit=target;$('quizExitDialog').showModal();return;}`.
+
+---
+
+## 10. En iyi puan — mod başına kalıcı (v1.6 — yeni)
+
+**Kural:** Uygulama ve Değerlendirme modlarının HER BİRİ için, o moddaki en yüksek toplam
+puan cihaz/tarayıcı bazında KALICI olarak saklanır ve iki yerde gösterilir: (1) mod seçim
+kartında ("En iyi puan: N" / henüz denenmediyse "Henüz denenmedi"), (2) sonuç ekranında, o
+oturumun puanının YANINDA ("Bu deneme: N · En iyi puan: N"). Bu değer **SCORM kaydının
+(`suspend_data`) parçası DEĞİLDİR** — yalnız `localStorage`'da, kayıt şemasından TAMAMEN
+AYRI bir anahtar altında tutulur (bkz. docs/05-kayit-ve-scorm.md §4). Yeni örneklem/oturum
+sıfırlama bu değeri SİLMEZ — yalnız YENİ bir deneme önceki en iyiyi GEÇERSE güncellenir.
+
+**Neden:** Öğrenci birden çok kez aynı modu deneyebilir (yeni örneklem, tekrar dene); "en son
+puan" tek başına ilerlemeyi yansıtmaz — bir öğrenci iyi bir denemeden sonra merak edip tekrar
+denerse ve bu seferki daha düşükse, yalnız SON puanı göstermek gerileme izlenimi verir. En iyi
+puanı AYRICA ve KALICI göstermek, motivasyonu SON denemenin şansına bağlı bırakmaz. Bunun
+SCORM kaydına DEĞİL yalnız `localStorage`'a yazılması bilinçlidir: bu bir LMS
+başarı/geçme kaydı DEĞİL, tarayıcı içi bir "kişisel rekor" konforu — docs/05 §4'teki
+"localStorage yalnız konfor tercihleri için" ayrımıyla AYNI mantığı izler (LMS'nin kendi
+`passed` durumu docs/05 §5'teki AYRI ve dokunulmaz kuralla korunur; en iyi puan bunun YERİNE
+geçmez, ona EK bir yerel konfordur).
+
+**Opaca'da nerede:** `src/core/store.tsx` 41 (`bestScore: { practice: number; assessment:
+number }` state alanı), 68 (`bestScore: { practice: 0, assessment: 0 }` başlangıç), 71
+(`BEST_SCORE_KEY = 'opaca.bestScore'`), 73–80 (`loadBestScore()` — `localStorage`'dan
+`try/catch` ile okuma, erişilemezse `{practice:0,assessment:0}`'a düşer), 219–226
+(`case 'setResults'` — "A4: oturum bitince mod başına en iyi toplam puanı güncelle";
+`prevBest`/`bestScore = agg.total>prevBest ? {...} : s.bestScore`; yalnız practice/assessment,
+`learn` modu bu dispatch'i hiç yapmaz), 386 (`useReducer(reducer, initialState, (init) =>
+({...init, bestScore: loadBestScore()}))`), 393–398 (`useEffect` — `state.bestScore`
+değiştiğinde `localStorage.setItem(BEST_SCORE_KEY, JSON.stringify(state.bestScore))`,
+`try/catch` ile sarılı). Gösterim: `src/screens/ModeSelectScreen.tsx` 54/66
+(`bestScore={state.bestScore.practice}` / `.assessment`), 117–119 (`{bestScore>0 ? <>En iyi
+puan: <b>{bestScore}</b></> : 'Henüz denenmedi'}`); `src/screens/ResultsScreen.tsx` 132
+(`Bu deneme: {total} · En iyi puan: {state.bestScore[isAssessment?'assessment':'practice']}`).

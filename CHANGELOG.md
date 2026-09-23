@@ -127,8 +127,83 @@ sesi, tam ekran etiketi" kaydı.
 - Hakkında rollerindeki yer tutucu isimler için boş baş harf avatarı artık "…" gösterir (gerçek
   bir kişi baş harfiyle karışmasın diye) — docs/02 §7.
 
+## v1.6 — Ausculta/Opaca'dan geri gelen kurallar, docs/07 kontrol listesi gerçek durumla dolduruldu (22–23 Eylül 2026)
+
+Kaynak: `EGEMED_PULSE` YERİNE bu kez `egemed-ausculta` ve `egemed-opaca` depolarındaki
+gerçek (commit'lenmemiş çalışma kopyası) kod — `git status`/`diff` ile taranmıştır. Bu,
+CHANGELOG'da ilk kez Pulse-DIŞI bir kaynaktan genelleştirilen kural turu.
+
+- **docs/07 kontrol listesi dolduruldu:** Faz 7 tablosundaki (v1.4/v1.5 kuralları) tüm
+  Ausculta/Opaca hücreleri, iki depoda gerçek kod taraması (`grep`/dosya okuma) ile ☑/☐/
+  "uygulanamaz: gerekçe" olarak işaretlendi — önceden hepsi ☐ idi. Öne çıkan bulgular:
+  doğrulama ifadesi politikası, Hakkında rolleri, tam ekran düğme etiketi ve tıklama
+  kararlılığı kabul testi HER İKİ üründe de ZATEN uygulanmış; içerik-QC maddelerinin
+  (§9.1–9.8, hemodinamik bağlam bankalama vb.) çoğu Pulse'un kardiyoloji alanına özgü
+  olduğundan Ausculta/Opaca için "uygulanamaz" işaretlendi; landing kompozisyonu satırı
+  "superseded" olarak işaretlenip yeni Faz 8 kuralına yönlendirildi.
+- **Yeni Faz 8** eklendi: v1.6'nın kendi kuralları için Ausculta/Opaca durumu (çoğu Opaca
+  kaynaklı olduğundan Opaca zaten ☑, Ausculta'da UYGULANMASI gerekenler ☐ işaretlendi).
+- **Soru tekrarı ölçütü** (docs/03 §10, yeni): görüntüye/kayda bağlı sorular
+  (`tür|görüntüId|doğru`) ile bilgi soruları (`tür|metin|doğru`) FARKLI imzayla ölçülür —
+  eski tek-imza tanımı görüntüye bağlı sorularda yanlış pozitif üretiyordu. Bilgi sorusu
+  varyantı havuzda ≤4 vaka; oturum içi tekrar YASAK (1000 tohumla test edilir); bulgudan
+  bağımsız genel soru oranı ≤%10. Kaynak: Opaca `scripts/lib/case-selection.mjs`
+  (`questionSignature`, `IMAGE_DEPENDENT_TYPES`, `KNOWLEDGE_QUESTION_CAP=4`,
+  `GENERIC_QUESTION_MAX_RATIO=0.1`) + `scripts/audit-duplicates.mjs` (1000 tohum testi).
+- **Güvenli çeldirici ilkesi** (docs/03 §11, yeni): çeldirici yalnız uzmanın/NLP'nin "yok"
+  dediği veya rapor/okuma metninde HİÇ geçmeyen bulgudan seçilir; güvenli adaylar arasında
+  ayırıcı tanı önceliği (`DIFFERENTIALS` haritası); değerlendirme kapısı — tüm seçmeli
+  soruların ≥3 seçeneği yoksa vaka yalnız öğrenme/uygulamada kalır, değerlendirmeye GİREMEZ.
+  Kaynak: Opaca `scripts/lib/case-selection.mjs` (`safeDistractors`, `DIFFERENTIALS`,
+  `orderDistractorsByDifferential`, `MIN_ASSESSMENT_OPTIONS=3`, `hasEnoughOptions`,
+  `caseSelectableOk`). Yeni snippet: `snippets/safeDistractors.js`.
+- **Yanıt sızıntısı — medya dosya adları** (docs/03 §4(c), mevcut "arayüz ipucu sızdırmaz"
+  kuralına 3. sızıntı yüzeyi olarak eklendi): dağıtılan pakette medya dosya adı/klasörü
+  bulguyu açık etmez — içerik sha1 hash'inden türetilen opak adlarla (`assets/audio/r/
+  <hash>.wav`), kategori klasörü (heart/lung/…) de KALDIRILARAK. Kaynak: Ausculta
+  `scripts/lib/obfuscate-audio.mjs` (`obfuscateAudioInDist`, post-build, yalnız üretim
+  paketlerinde çalışır). Yeni snippet: `snippets/obfuscateMedia.js`.
+- **Lokalizasyon** (docs/04 §10, yeni): sabit yarıçaplı işaret dairesi (görüntü kısa
+  kenarının %8'i); isabet = merkez uzman kutusunun İÇİNDE **VE** merkez–kutu-merkezi mesafesi
+  ≤ yarı köşegenin %60'ı; kutu alanı görüntünün >%35'iyse lokalizasyon sorusu HİÇ ÜRETİLMEZ;
+  yanıt açıldığında ıskalayan işaretten en yakın uzman kutusuna bir ok/çizgi ile geri bildirim
+  (yalnız yüzde/konum, mm iddiası YOK). Kaynak: Opaca `src/core/geometry.ts`
+  (`MAX_LOCALIZATION_BOX_AREA=0.35`, `MARK_RADIUS_SHORT_EDGE_FRACTION=0.08`,
+  `MARK_CENTER_DISTANCE_FRACTION=0.6`, `markHitsBox`, `nearestFindingBoxCenter`),
+  `src/ui/FilmViewer.tsx` (`markMissTarget`, işaret dairesi, klavye erişilebilirliği). Yeni
+  snippet: `snippets/localizationHit.js`.
+- **Kesit yığını görüntüleyici (BT)** (docs/04 §11, yeni): kesitler önceden render edilmiş
+  İKİ pencere (Akciğer/Mediasten) ile sunulur, serbest HU pencereleme YOK; fare
+  tekerleği/ok tuşları yakınlaştırma yerine kesit gezinir; uzman işaretleri YALNIZ kendi
+  kesitinde görünür ("işaret: kesit a–b" ipucuyla telafi edilir); radyolog okuyucu morfoloji
+  puanları GÖSTERİLİR ama malignite/olasılık GÖSTERİLMEZ + "patoloji doğrulaması yoktur"
+  notu; bu seriden VAKA/SORU ÜRETİLMEZ (yalnız öğrenme). Kaynak: Opaca `src/ui/
+  FilmViewer.tsx` (CT yığın mantığı), `src/ui/FilmInfoPanel.tsx` (`LIDC_SCALES`,
+  malignite/subtlety KASITLI OLARAK dışarıda), `scripts/import-tcia.mjs` ("BT kayıtları
+  yalnız ÖĞRENME içindir").
+- **En iyi puan** (docs/02 §10, yeni): Uygulama ve Değerlendirme modlarının her biri için en
+  yüksek toplam puan cihaz bazında KALICI (`localStorage`, SCORM şeması/`suspend_data`
+  DIŞINDA); mod kartında ve sonuç ekranında gösterilir; yeni örneklem/sıfırlama bu değeri
+  SİLMEZ. Kaynak: Opaca `src/core/store.tsx` (`bestScore`, `BEST_SCORE_KEY`,
+  `loadBestScore`, `setResults` case). docs/05-kayit-ve-scorm.md §4'e üçüncü bir
+  localStorage kategorisi ("kalıcı ama LMS-dışı kişisel rekor") olarak eklendi.
+- **Üçüncü taraf içerik politikası** (docs/01 §8, yeni bölüm): lisansı olmayan/uygun
+  olmayan açık kaynak içerik ürüne DOĞRUDAN KOPYALANMAZ; gerekirse temiz oda (clean room)
+  uygulaması + esin kaynağına atıf; kullanıcı kararıyla İSTİSNA yapılabilir (sessizce değil,
+  kayda geçirilerek). Veri seti düzeyinde zaten var olan disiplin (Opaca
+  `scripts/lib/license.mjs` — CC0/PD/CC BY/CC BY-SA kabul, NC/ND RET) kod/tasarım
+  parçalarına da genelleştirildi.
+- **Landing — filigran kaldırıldı** (docs/01 §5.3, docs/02 §1; kullanıcı kararı, 22 Eylül 2026):
+  v1.3–v1.5'teki arka plan kurum filigranı üç üründen de kaldırıldı. Üstteki kurum amblemi + satırı
+  ürüne bağlıdır: Pulse ve Ausculta'da korunur, Opaca'da kaldırıldı.
+  Landing ortam sesinin ürün karakterine bağlı, ZORUNLU OLMAYAN bir tercih olduğu netleştirildi
+  (Ausculta'da var — `chrome.tsx` `useLandingAmbientSound`; Opaca'da bilinçli olarak YOK).
+- Yeni snippet'ler: `snippets/safeDistractors.js`, `snippets/obfuscateMedia.js`,
+  `snippets/localizationHit.js` (mevcut `seededPermutation.js` vb. ile AYNI kalıp: üst yorum
+  bloğunda Neden + "…'da nerede" + ürün-bağımsız kullanım).
+
 ---
 
-Bu şablon deposu (**EGEMED SIM FRAMEWORK**) v1.5 durumunu tek commit olarak yakalar;
-gelecekteki Pulse turları veya Ausculta/Opaca'dan geri gelen genelleştirilebilir kurallar
-bu CHANGELOG'a yeni bir sürüm satırı olarak eklenmelidir.
+Bu şablon deposu (**EGEMED SIM FRAMEWORK**) v1.6 durumunu tek commit olarak yakalar;
+gelecekteki Pulse/Ausculta/Opaca turları veya bu üç depodan geri gelen genelleştirilebilir
+kurallar bu CHANGELOG'a yeni bir sürüm satırı olarak eklenmelidir.

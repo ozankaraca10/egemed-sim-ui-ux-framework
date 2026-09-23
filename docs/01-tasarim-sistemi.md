@@ -154,43 +154,33 @@ zaten bağlamı verir).
 **Ürün-bağımsız değer:** Pulse="Etkileşimli EKG Simülatörü", Ausculta="Oskültasyon Simülatörü"
 (veya mevcut sloganı), Opaca=`[Opaca: belirlenecek]`.
 
-### 5.3 Landing marka kompozisyonu — kurum amblemi + ürün logosu + filigran
+### 5.3 Landing marka kompozisyonu — arka plan filigranı YOK; kurum amblemi ürüne bağlı (v1.6)
 
-**Kural:** Landing'de kurum ve ürün kimliği ÜÇ ayrı katmanda, açık bir hiyerarşiyle
-gösterilir: (1) en üstte KÜÇÜK, net bir kurum satırı (amblem + kurum adı metni, ör. 96 px
-yükseklik), (2) hemen altında BÜYÜK, yatay bir ürün logosu (kartın en görünür öğesi;
-genişliği viewport'a göre ölçeklenir — `min(640px,86vw)`, üç kırılımda küçülür: 480/380/300),
-(3) arka planda, kart arkasında ORTALANMIŞ, büyük ve RENKLİ (grayscale/silik DEĞİL) bir
-kurum filigranı (`opacity .14`, filtre yok). Kart, filigranın üstünde okunaklı kalması için
-yarı saydam beyaz zemin + hafif blur alır (`rgba(255,255,255,.86)` + `backdrop-filter:
-blur(2px)`). Dar ekranda (≤820px) filigran tamamen gizlenir (dekoratif katman, kritik bilgi
-taşımaz).
+> **v1.6 revizyonu (kullanıcı kararları, 22 Eylül 2026):** v1.3–v1.5'teki "arkada büyük renkli
+> kurum filigranı" katmanı **üç üründen de kaldırılmıştır**; landing arka planı filigran öncesi
+> sade degradeye döner. Kartın üstündeki **kurum amblemi + kurum satırı** ise ürüne bağlı bir
+> tercihtir: Pulse ve Ausculta'da **korunur**, Opaca'da kullanıcının ürüne özel isteğiyle
+> **kaldırılmıştır** (Opaca landing'i yalnız ürün logosunu taşır).
 
-**Neden:** Önceki kompozisyonda kurum amblemi sola yaslı, KÜÇÜK ve silik (`opacity:.08`,
-grayscale) bir dekorasyon; ürün logosu ise görece küçük (`min(320px,52vw)`) bir öğeydi —
-kurumsal kimlik ile ürün kimliği arasındaki HİYERARŞİ belirsizdi (hangisi "asıl" mesaj?).
-Kurumu ÜSTE, KÜÇÜK ve net bir satır olarak taşımak ("bunu kim/hangi kurum sağlıyor" sorusuna
-anında cevap) ile ürün logosunu BÜYÜTÜP ana görsel odak yapmak ("bu ne" sorusuna cevap) bu
-hiyerarşiyi netleştirir. Filigranı silik bir dekorasyondan büyük/renkli bir arka plan öğesine
-çevirmek, kurumsal kimliği güçlendirirken; kartın yarı saydam zemin + blur alması, filigranın
-arkasındaki metnin (başlık, "Neden güvenilir?" kutuları) okunabilirliğini KORUR — filigran
-güçlenirken içerik okunabilirliği FEDA EDİLMEZ.
+**Kural:**
+1. Landing arka planında kurumu temsil eden filigran/mühür katmanı **bulunmaz** (tüm ürünler).
+2. Kart düzeni: (isteğe bağlı) üstte kurum amblemi + "Ege Üniversitesi Tıp Fakültesi" satırı →
+   büyütülmüş yatay ürün logosu → başlık/değer önerisi → başlat düğmesi.
+3. Kurum amblemi kullanılmıyorsa kurum atfı yalnız footer metninde kalır (`components/footer.html`);
+   kullanılıyorsa da footer atfı ayrıca durur.
 
-**Pulse'ta nerede:** `cardai/styles.css` `.landing-seal` (ortalı, `width:min(78vh,60vw)`,
-`max-width:720px`, `opacity:.14`, `filter:none` — önceki `left:...;opacity:.08;
-filter:grayscale(1)` yerine), `.landing-card` (`background:rgba(255,255,255,.86);
-backdrop-filter:blur(2px)`), `.landing-inst`/`.landing-inst-text` (96 px kurum satırı, altında
-"Ege Üniversitesi Tıp Fakültesi" metni; 1024px altı 72px), `.landing-logo`
-(`width:min(640px,86vw);max-height:210px`; kırılımlar: 1000–820px yükseklikte
-`min(480px,55vw)`, ≤700px genişlikte `min(380px,72vw)`, ≤600px yükseklikte `min(300px,34vw)`).
-`cardai/index.html` `.landing-card` içine `<img class="landing-inst">` +
-`<span class="landing-inst-text">` eklendi, `.landing-logo` `<img>`'i AYNI kaldı (yalnız CSS
-boyutu büyüdü). Bileşen: `components/landing.html`. Kanıt: `qa/evidence/mode-flow/
-landing-1366.png`, `landing-390.png` (Tur 5 — 21 Eylül 2026).
+**Neden:** Büyük renkli filigran ürün logosuyla görsel olarak yarışıyor ve dar ekranda ayrıca gizleme
+istisnası gerektiriyordu. Üstteki amblem ise kurumsal sahipliği tek bakışta gösterir; bir ürünün
+kimliği (Opaca) bunu gereksiz kıldığında çıkarılabilir.
 
-**Ürün-bağımsız değer:** Kurum satırı (amblem + metin) ve filigran kaynağı TÜM ürünlerde
-AYNI kurum varlığıdır (`assets/ege-tip-logo.png` eşdeğeri); yalnız `.landing-logo`
-kaynağı ürüne göre değişir (Pulse: yatay tam logo `pulse-horizontal-full-1536x512.png`).
+**Pulse'ta nerede:** `cardai/index.html` → `.landing-card` içinde `.landing-inst` (amblem) +
+`.landing-inst-text` + `.landing-logo`; filigran katmanı yok.
+
+**Ausculta'da nerede:** `src/screens/StartScreen.tsx` → `.hero-inst-top` (amblem + kurum satırı)
++ `.hero-logo`; filigran katmanı yok.
+
+**Opaca'da nerede:** `src/screens/StartScreen.tsx` → yalnız `.hero-logo`; kurum `Footer()`
+(`src/ui/chrome.tsx`) içinde metin olarak geçer.
 
 ---
 
@@ -209,3 +199,40 @@ bekleyen nokta** olarak işaretlenmişti; Pulse'ta bu geçiş uygulanmıştır (
 Ausculta/Opaca'ya bu şablonu uygularken, ürünün KENDİ eski ölçek sisteminin olup
 olmadığını kontrol edin ve aynı kullanıcı-onayı adımını izleyin (bkz.
 docs/07-uygulama-kontrol-listesi.md).
+
+---
+
+## 8. Üçüncü taraf içerik politikası (v1.6 — yeni)
+
+**Kural:** Lisansı belirsiz veya kullanım koşullarını karşılamayan (ör. NC/ND lisanslı,
+lisanssız "bulunan" bir görsel/ses/kod parçası) açık kaynak içerik ürüne DOĞRUDAN
+KOPYALANMAZ. Bir kaynaktan esinlenmek gerekiyorsa **temiz oda (clean room) uygulaması**
+izlenir: kaynağın kod/varlığının kendisi değil, yalnız ORTAYA ÇIKAN FİKRİ (ör. "bu tür bir
+etkileşim kalıbı iyi çalışıyor") yeniden, sıfırdan ve ürünün kendi veri/kod tabanıyla
+uygulanır; kaynağa bir "esin kaynağı" bağlantısı/atfı ile referans verilir. Bu politika
+nihaidir ama MUTLAK değildir — **kullanıcı kararıyla** (ör. kaynağın lisansı sonradan
+netleşirse, veya içerik yalnız iç/geliştirme ortamında kalacaksa) UYGULANMAYABİLİR; bu
+istisna sessizce değil, AÇIKÇA (yorum satırı veya PROVENANCE/lisans belgesinde) kayda
+geçirilir.
+
+**Neden:** Bir SCORM paketi/HTML çıktısı LMS'ler ve kurumlar arasında DAĞITILIR; lisansı
+belirsiz bir varlığın (görsel, ses, kod parçası) pakete sessizce girmesi, dağıtım
+sonrasında geri alınması İMKANSIZ bir hukuki/etik risk yaratır. Veri seti düzeyinde bu
+zaten uygulanan bir disiplindir (bkz. Opaca `scripts/lib/license.mjs` — yalnız CC0/Public
+domain/CC BY/CC BY-SA kabul edilir, NC/ND filtre ile REDDEDİLİR); v1.6, aynı disiplini
+görsel/etkileşim TASARIMI ve kod parçaları için de AÇIKÇA aile kuralı hâline getirir —
+önceden bu yalnız veri seti içe aktarma betiklerinde ÖRTÜK bir uygulamaydı, madde bankası
+dışındaki içerik (ör. bir UI kalıbı, bir ikon seti, bir açık kaynak bileşen) için AYRICA
+yazılı bir kural yoktu.
+
+**Opaca'da nerede (veri seti düzeyinde eşdeğer disiplin):** `scripts/lib/license.mjs` —
+`LICENSE_OK` regex'i (`CC0|Public domain|CC[- ]?BY(...)|CC[- ]?BY[- ]SA(...)`) ve
+`isAcceptableLicense(shortName)` — `NC`/`ND` işaretli herhangi bir lisansı `false` döndürerek
+REDDEDER; `scripts/import-commons.mjs` bu filtreyi Wikimedia Commons içe aktarımında
+uygular (bkz. `docs/OPACA-V2-ICERIK-PLANI.md`). Bu, politikanın "veri" ayağının halihazırda
+üründe VAR OLAN kanıtıdır; v1.6 bu disiplini kod/tasarım parçalarına da GENELLEŞTİRİR.
+
+**Uygulama notu:** Bu madde docs/07 kontrol listesine YENİ bir denetim kalemi olarak
+eklenmiştir (bkz. Faz 8) — her ürün, "ürüne eklenen açık kaynak kod/tasarım parçaları
+listesi + lisans durumu" sorusuna PROVENANCE.md (veya eşdeğeri) üzerinden cevap
+verebilmelidir.

@@ -47,20 +47,25 @@ README.md                       — bu dosya
 CHANGELOG.md                    — sürüm tarihçesi (v1.0 Ausculta tabanı → v1.1…v1.5 Pulse turları)
 docs/
   01-tasarim-sistemi.md         — token'lar, tipografi, renkler, radius/gölge, ikon, marka bloğu, footer,
-                                   landing marka kompozisyonu
-  02-ekranlar.md                — landing (kompozisyon, validasyon ifadesi, ortam sesi), mod seçimi, öğretici,
-                                   uygulama, değerlendirme, sonuçlar, hakkında (roller/yer tutucular), dialoglar
+                                   landing marka kompozisyonu (v1.6: filigran yok, amblem ürüne bağlı),
+                                   üçüncü taraf içerik politikası
+  02-ekranlar.md                — landing (kompozisyon, validasyon ifadesi, ortam sesi — ürün karakterine
+                                   bağlı), mod seçimi, öğretici, uygulama, değerlendirme, sonuçlar, hakkında
+                                   (roller/yer tutucular), dialoglar, en iyi puan (mod başına kalıcı)
   03-mod-akisi-ve-pedagoji.md   — kilit≠öneri, gönderim kuralları, örneklem/onay, otomatik değerlendirme,
-                                   seçenek permütasyonu, stem/ipucu sızıntısı, geri bildirim yapısı, başarı tanımı,
-                                   içerik kalite kuralları (madde bankası QC döngüsü)
+                                   seçenek permütasyonu, stem/ipucu/medya sızıntısı, geri bildirim yapısı,
+                                   başarı tanımı, içerik kalite kuralları (madde bankası QC döngüsü),
+                                   soru tekrarı ölçütü, güvenli çeldirici ilkesi
   04-etkilesim-ve-erisilebilirlik.md — tam ekran (+ düğme etiketi), kısayol kapsamı, zoom, karşılaştırma çizimi,
                                    odak yönetimi, ARIA kalıpları, 44px hedef, 390px davranışı,
-                                   tıklama hedefi kararlılığı
+                                   tıklama hedefi kararlılığı, lokalizasyon, kesit yığını görüntüleyici (BT)
   05-kayit-ve-scorm.md          — SCORM 1.2 tek SCO, suspend_data 4096, şema sürümü + içerik imzası (cv),
-                                   localStorage kapsamı, LMS passed korunması
+                                   localStorage kapsamı (konfor / kişisel rekor / oturum verisi), LMS passed
+                                   korunması
   06-qa-kabul.md                — Playwright kabul listesi, build tekrarlanabilirliği, ekran boyutları,
                                    içerik QC (400 madde/vm kontrolleri/dışa aktarma), tıklama kararlılığı testi
-  07-uygulama-kontrol-listesi.md — Ausculta/Opaca'ya uygularken faz faz kontrol listesi + terim tablosu
+  07-uygulama-kontrol-listesi.md — Ausculta/Opaca'ya uygularken faz faz kontrol listesi (Faz 0–8,
+                                   Ausculta/Opaca sütunları gerçek kod taramasıyla dolu) + terim tablosu
 tokens/
   family-tokens.css             — tek kaynak aile token'ları (renk/tipografi/radius/gölge)
 components/
@@ -69,7 +74,8 @@ components/
   sound-toggle.html
 snippets/
   seededPermutation.js, requestResample.js, toggleFullscreen.js, fullscreenPrompt.js,
-  progress-percent.js, stableRender.js, landingSound.js
+  progress-percent.js, stableRender.js, landingSound.js, safeDistractors.js,
+  obfuscateMedia.js, localizationHit.js
 tests/
   click-stability.template.mjs  — tıklama hedefi kararlılığı kabul testi şablonu (ürün-bağımsız)
 reference/
@@ -79,7 +85,10 @@ reference/
 
 ## Sürüm
 
-Bkz. `CHANGELOG.md`. Güncel: **v1.5** (Pulse Tur 5 — 21 Eylül 2026 durumu tamamen işlendi).
+Bkz. `CHANGELOG.md`. Güncel: **v1.6** (22–23 Eylül 2026 — Ausculta/Opaca'dan geri gelen
+genelleştirilebilir kurallar: soru tekrarı ölçütü, güvenli çeldirici ilkesi, lokalizasyon,
+yanıt sızıntısı (medya), BT kesit yığını görüntüleyici, en iyi puan, üçüncü taraf içerik
+politikası; landing arka plan filigranı kaldırıldı).
 
 ## Kaynak ve doğrulama
 
@@ -96,3 +105,14 @@ gerçek değişikliklerden doğrulanmıştır:
 - `cardai/KULLANIM.md` (kullanıcıya dönük davranış tarifi).
 
 EGEMED_PULSE deposu bu şablon deposundan **yalnız okunur**; hiçbir dosyası değiştirilmemiştir.
+
+**v1.6 (22–23 Eylül 2026) — Ausculta/Opaca kaynaklı kurallar:** Bu turda eklenen kurallar
+(soru tekrarı ölçütü, güvenli çeldirici ilkesi, lokalizasyon, medya sızıntısı, BT kesit
+yığını görüntüleyici, en iyi puan, üçüncü taraf içerik politikası) Pulse'tan DEĞİL,
+`/Users/ozankaraca/Documents/EGEMED SIM/{egemed-ausculta,egemed-opaca}` depolarındaki
+GERÇEK koddan doğrulanmıştır (bu depolar da commit'lenmemiş çalışma kopyası hâlindedir —
+`git status`/`diff` ile taranmıştır). Kaynak dosya/satır her kuralın "…'da nerede" bölümünde
+verilmiştir. Ausculta ve Opaca depoları da bu şablon deposundan **yalnız okunur**; hiçbir
+dosyaları değiştirilmemiştir. v1.5'teki landing arka plan filigranı v1.6'da
+kullanıcı kararıyla kaldırılmıştır; üstteki kurum amblemi ürüne bağlıdır (bkz.
+docs/01-tasarim-sistemi.md §5.3, CHANGELOG.md).

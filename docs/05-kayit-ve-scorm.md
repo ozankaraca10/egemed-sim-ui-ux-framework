@@ -96,6 +96,16 @@ kaydına YAZILMAZ. Oturum verisi: `cardai/scorm.js` `KEY`/`LEGACY_KEYS` (bağım
 localStorage fallback'i) — SCORM API'siyle AYNI serileştirilmiş JSON'u taşır, konfor
 tercihinden TAMAMEN farklı bir anahtar altında.
 
+**Üçüncü bir örnek kategori (v1.6): kalıcı ama LMS-dışı "kişisel rekor"** — bkz.
+docs/02-ekranlar.md §10 "En iyi puan". Bu, ne bir konfor tercihidir (ör. bir dahaki sefere
+tekrar sorulabilir, önemsiz) ne de bir OTURUM verisidir (yanıtlar, puanlar) — kalıcı olması
+GEREKEN ama SCORM/LMS kaydına KARIŞMAMASI gereken üçüncü bir sınıftır: kullanıcının kendi
+en iyi denemesini hatırlaması bir ÖĞRETİM ilerlemesi değil, bir MOTİVASYON konforudur; LMS'ye
+`passed`/puan olarak YAZILMAZ (bkz. §5 aşağıda — LMS'nin kendi puan/geçme kaydı bundan
+TAMAMEN bağımsızdır), yeni örneklem/oturum sıfırlamayla SİLİNMEZ. Opaca'da nerede:
+`src/core/store.tsx` `BEST_SCORE_KEY='opaca.bestScore'` — ayrı, kayıt şemasının
+(`SCHEMA_VERSION`/`suspend_data` alan haritası) DIŞINDA bir `localStorage` anahtarı.
+
 ---
 
 ## 5. LMS `passed` durumunun korunması

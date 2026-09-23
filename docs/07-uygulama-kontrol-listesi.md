@@ -121,29 +121,48 @@ doldurulamaz — bu maddeler kullanıcı kararı bekler, tahmin/uydurma YAPILMAZ
 
 ## Faz 7 — Pulse Tur 4/5 yeni kuralları (içerik QC, landing, tıklama kararlılığı)
 
-Bu fazın maddeleri v1.4/v1.5'te eklendi; henüz hiçbir ürüne uygulanmadığından her madde
-Ausculta ve Opaca için AYRI işaretlenir (bir ürünün tamamlaması diğerini otomatik
-tamamlamaz — ikisi de kendi kod tabanında ayrı ayrı doğrulanmalıdır).
+Bu fazın maddeleri v1.4/v1.5'te eklendi. **v1.6 güncellemesi:** Ausculta ve Opaca depoları
+(21–23 Eylül 2026 çalışma kopyaları, commit'lenmemiş) `/Applications/Xcode.app/Contents/
+Developer/usr/bin/git status`/`diff` ile taranıp GERÇEK durum işaretlenmiştir — aşağıdaki
+☑/☐/"uygulanamaz" değerleri varsayım DEĞİL, kod taramasına dayanır (kaynak dosya/satır her
+satırda belirtilir). Bir ürünün ☑ olması diğerini OTOMATİK tamamlamaz.
 
 | Kural | Bkz. | Ausculta | Opaca |
 |---|---|---|---|
-| Yönetim/yaklaşım maddeleri tek şablondan değil, hemodinamik durum + klinik bağlama göre bankalanıyor | docs/03 §9.1 | ☐ | ☐ |
-| Vital/bağlam–anahtar tutarlılığı doğrulandı; arrest bağlamında retrospektif not (`.case-note`) uygulandı | docs/03 §9.2 | ☐ | ☐ |
-| Görsel–metin uyumu: her tanı/bölge için sabit derivasyon üçlüsü, madde bu üçlüden türetiliyor | docs/03 §9.3 | ☐ | ☐ |
-| Medya çeşitliliği: aynı örüntünün tekrarında kayıt penceresi/başlangıcı farklılaştırıldı | docs/03 §9.4 | ☐ | ☐ |
-| Ölçüm standardı notu: model ölçüm noktası kılavuz eşiğinden farklıysa madde metninde belirtiliyor | docs/03 §9.5 | ☐ | ☐ |
-| Tautolojik/çift geçerli seçenek taraması yapıldı (dış QC veya iç gözden geçirme) | docs/03 §9.6 | ☐ | ☐ |
-| Kayıt imzası (`cv`) içerik sürümüne bağlı; şema sürümünden AYRI tutuluyor, uyumsuzlukta yalnız içerik-bağımlı veri tazeleniyor | docs/03 §9.7 | ☐ | ☐ |
-| Dış QC döngüsü kuruldu: tam-eşleşmeli yama betiği → `vm` doğrulaması → tarayıcı testleri → QC dışa aktarma paketi | docs/03 §9.8, docs/06 §18 | ☐ | ☐ |
-| `vm` tabanlı içerik testi: madde sayısı, benzersizlik, doğru şık pozisyon dağılımı, cevap sızıntısı regex'i | docs/06 §18 | ☐ | ☐ |
-| QC dışa aktarma paketi (`qa/export_items.mjs` eşdeğeri) kuruldu ve tek komutla tekrar üretilebiliyor | docs/06 §18 | ☐ | ☐ |
-| Landing kompozisyonu: kurum satırı üstte, ürün logosu büyütüldü, kurum filigranı arkada renkli/büyük | docs/01 §5.3, docs/02 §1, components/landing.html | ☐ | ☐ |
-| Validasyon ifadesi politikası: "bağımsız doğrulama yok" ifadeleri kaldırıldı, standart atıf cümlesi tüm yüzeylerde (landing/Hakkında/Yardım/kullanım belgesi/sources.json) tutarlı | docs/02 §1, §7 | ☐ | ☐ |
-| Hakkında rolleri güncellendi ("Öğretim Tasarımı ve Tıbbi Danışmanlık" / "Tıbbi İçerik Validasyonu"); isim netleşmeden yer tutucu kullanılıyor, boş baş harf avatarı "…" | docs/02 §7 | ☐ | ☐ |
-| Landing ortam sesi eklendi (varsayılan açık, `aria-pressed`, localStorage kalıcı, yalnız landing'de çalar) | docs/02 §1, components/sound-toggle.html, snippets/landingSound.js | ☐ | ☐ |
-| Tam ekran düğmesi metin etiketli ("Tam ekran"/"Tam ekrandan çık"), landing'de de | docs/04 §1.5 | ☐ | ☐ |
-| Tıklama hedefi kararlılığı: periyodik render yolları içerik değişmeden `innerHTML` YENİLEMİYOR, tıklama tek delege dinleyiciyle yakalanıyor | docs/04 §9, snippets/stableRender.js | ☐ | ☐ |
-| Tıklama kararlılığı kabul testi uygulandı (300 ms bekleme, mod kartlarında 20/20) | docs/06 §19, tests/click-stability.template.mjs | ☐ | ☐ |
+| Yönetim/yaklaşım maddeleri tek şablondan değil, hemodinamik durum + klinik bağlama göre bankalanıyor | docs/03 §9.1 | uygulanamaz: Ausculta'da (oskültasyon = ses/bulgu tanıma) "hemodinamik durum/instabilite" ile bankalanan bir yönetim-yaklaşım soru tipi yok | uygulanamaz: Opaca'da (radyoloji = görüntü/bulgu tanıma) aynı gerekçe — hemodinamik durum kavramı yok |
+| Vital/bağlam–anahtar tutarlılığı doğrulandı; arrest bağlamında retrospektif not (`.case-note`) uygulandı | docs/03 §9.2 | uygulanamaz: aynı gerekçe (§9.1) — vital/instabilite bağlamlı madde tipi yok | uygulanamaz: aynı gerekçe |
+| Görsel–metin uyumu: her tanı/bölge için sabit derivasyon üçlüsü, madde bu üçlüden türetiliyor | docs/03 §9.3 | ☑ eşdeğer mekanizmayla: `scripts/generate-cases.mjs` `primary` bir KAYDIN kendi gerçek konumundan/bulgusundan türer (satır ~121–279, `simulationLocation`) — Pulse'un elle atanan sabit derivasyon üçlüsü YERİNE, veri-güdümlü türetme aynı garantiyi (soru ile gösterilen kayıt HER ZAMAN uyumlu) YAPISAL olarak sağlıyor | ☑ eşdeğer mekanizmayla: `scripts/generate-cases.mjs` satır 149 `primary = withBox[0] ?? expertPos[0] ?? ...` — `img.annotations`/`img.findings`'ten DOĞRUDAN türer, elle atanan bir şablon YOK |
+| Medya çeşitliliği: aynı örüntünün tekrarında kayıt penceresi/başlangıcı farklılaştırıldı | docs/03 §9.4 | ☐ — kod taramasında (`generate-cases.mjs`) bu türde bir "başlangıç/pencere çeşitlendirme" mekanizması bulunamadı | ☐ — aynı, `generate-cases.mjs`'te bulunamadı (görüntüler zaten tekil dosya; "pencere" kavramı BT yığınına özgü, bkz. docs/04 §11) |
+| Ölçüm standardı notu: model ölçüm noktası kılavuz eşiğinden farklıysa madde metninde belirtiliyor | docs/03 §9.5 | ☐ — bulunamadı | ☐ — bulunamadı (kaliper/oran ölçüm aracı `FilmViewer.tsx measureRatio` var ama kılavuz-eşiği-farkı notu yok) |
+| Tautolojik/çift geçerli seçenek taraması yapıldı (dış QC veya iç gözden geçirme) | docs/03 §9.6 | ☐ — dedike bir betik/QC kaydı bulunamadı | ☐ — dedike bir betik/QC kaydı bulunamadı |
+| Kayıt imzası (`cv`) içerik sürümüne bağlı; şema sürümünden AYRI tutuluyor, uyumsuzlukta yalnız içerik-bağımlı veri tazeleniyor | docs/03 §9.7 | ☐ — `src/core/store.tsx`'te yalnız SCORM `api.version` (1.2/2004) var; içerik/madde bankası sürüm imzası AYRI bir alan olarak bulunamadı | ☐ — aynı, `src/core/scorm.ts`'te yalnız SCORM sürümü var |
+| Dış QC döngüsü kuruldu: tam-eşleşmeli yama betiği → `vm` doğrulaması → tarayıcı testleri → QC dışa aktarma paketi | docs/03 §9.8, docs/06 §18 | ☐ — bulunamadı | ☐ — bulunamadı |
+| `vm` tabanlı içerik testi: madde sayısı, benzersizlik, doğru şık pozisyon dağılımı, cevap sızıntısı regex'i | docs/06 §18 | ☐ kısmi eşdeğer: `scripts/validate-audio.mjs` YAPISAL bütünlük kontrolü yapar ama `vm.createContext` yalıtımı + pozisyon dağılımı testi YOK | ☐ kısmi eşdeğer: `scripts/validate-images.mjs` + `scripts/audit-duplicates.mjs` (soru İMZASI tekrarını 1000 tohumla test eder — bkz. docs/03 §10) var ama `vm` yalıtımlı doğru-şık pozisyon dağılımı testi YOK |
+| QC dışa aktarma paketi (`qa/export_items.mjs` eşdeğeri) kuruldu ve tek komutla tekrar üretilebiliyor | docs/06 §18 | ☐ — bulunamadı | ☐ — bulunamadı |
+| Landing kompozisyonu: kurum satırı üstte, ürün logosu büyütüldü, kurum filigranı arkada renkli/büyük | docs/01 §5.3, docs/02 §1, components/landing.html | **v1.6'da güncellendi, bkz. Faz 8** — amblem satırı var (`StartScreen.tsx` `.hero-inst-top`), filigran yok | **v1.6'da güncellendi, bkz. Faz 8** — amblem ve filigran yok (ürüne özel karar) |
+| Validasyon ifadesi politikası: "bağımsız doğrulama yok" ifadeleri kaldırıldı, standart atıf cümlesi tüm yüzeylerde (landing/Hakkında/Yardım/kullanım belgesi/sources.json) tutarlı | docs/02 §1, §7 | ☑ `src/data/sources.json` satır 17–18: "…Kardiyoloji ve Göğüs Hastalıkları Anabilim Dalları öğretim üyelerince yapılmıştır." (tam+kısa biçim) | ☑ `src/data/sources.json` satır 10–11: "…Radyoloji Anabilim Dalı öğretim üyelerince yapılmıştır." |
+| Hakkında rolleri güncellendi ("Öğretim Tasarımı ve Tıbbi Danışmanlık" / "Tıbbi İçerik Validasyonu"); isim netleşmeden yer tutucu kullanılıyor, boş baş harf avatarı "…" | docs/02 §7 | ☑ `src/data/sources.json` `credits[]` satır 32/49 — her iki rol adı MEVCUT | ☑ `src/data/sources.json` `credits[]` satır 24/41 — her iki rol adı MEVCUT |
+| Landing ortam sesi eklendi (varsayılan açık, `aria-pressed`, localStorage kalıcı, yalnız landing'de çalar) | docs/02 §1, components/sound-toggle.html, snippets/landingSound.js | ☑ `src/ui/chrome.tsx` satır 17 (`LANDING_SOUND_KEY='ausculta.landingSound'`), 150 (`useLandingAmbientSound(state.screen==='start')`), 242–252 (düğme, `aria-pressed`) | uygulanamaz (bilinçli ürün kararı — bkz. docs/02 §1 v1.6 notu): Opaca'da (sessiz bir eylem olan görüntü okuma için) ortam sesi karakter gereği YOK; StartScreen.tsx'te ses kodu bulunamadı |
+| Tam ekran düğmesi metin etiketli ("Tam ekran"/"Tam ekrandan çık"), landing'de de | docs/04 §1.5 | ☑ `src/ui/chrome.tsx` satır 260–264 | ☑ `src/ui/chrome.tsx` satır 99–102 |
+| Tıklama hedefi kararlılığı: periyodik render yolları içerik değişmeden `innerHTML` YENİLEMİYOR, tıklama tek delege dinleyiciyle yakalanıyor | docs/04 §9, snippets/stableRender.js | uygulanamaz: React tabanlı SPA — vanilla `innerHTML` yeniden kurma kalıbı hiç KULLANILMIYOR (React reconciliation farklı bir garanti veriyor); bkz. docs/04 §9 "Ausculta/Opaca'da nerede" notu | uygulanamaz: aynı gerekçe (React) |
+| Tıklama kararlılığı kabul testi uygulandı (300 ms bekleme, mod kartlarında 20/20) | docs/06 §19, tests/click-stability.template.mjs | ☑ `scripts/e2e-click-stability.mjs` (123 satır, 20 tekrar × 300 ms) | ☑ `scripts/e2e-click-stability.mjs` (265 satır, 20 tekrar × 300 ms + `moveAway` probu) |
+
+## Faz 8 — v1.6 yeni kuralları (22–23 Eylül 2026)
+
+Bu fazın maddeleri v1.6'da eklendi; çoğu doğrudan Ausculta/Opaca'dan (Pulse'tan DEĞİL)
+kaynaklanır — bu yüzden kaynak ürün genelde zaten ☑'dir, karşı ürün için AYRI uygulama
+gerekir. Kaynak dosya/satır her ilgili docs/0X bölümünde verilmiştir.
+
+| Kural | Bkz. | Ausculta | Opaca |
+|---|---|---|---|
+| Soru tekrarı ölçütü: görüntüye bağlı sorular `tür\|görüntüId\|doğru`, bilgi soruları `tür\|metin\|doğru`; bilgi sorusu varyantı ≤4 vaka; oturum içi tekrar yasak (1000 tohum testi); genel soru oranı ≤%10 | docs/03 §10 | ☐ — Ausculta'nın kendi soru üretiminde (`scripts/generate-cases.mjs`) bu ayrımı yapan bir `questionSignature`/tavan mekanizması bulunamadı; UYGULANMALI | ☑ kaynak — `scripts/lib/case-selection.mjs` + `scripts/audit-duplicates.mjs` |
+| Güvenli çeldirici ilkesi: çeldirici yalnız "yok" kanıtlı bulgudan; ayırıcı tanı önceliği (`DIFFERENTIALS`); değerlendirme kapısı ≥3 seçenek | docs/03 §11 | ☐ — Ausculta'nın çeldirici seçiminde `DIFFERENTIALS`/`safeDistractors` eşdeğeri bulunamadı; UYGULANMALI (Ausculta'nın KENDİ ses/bulgu ayırıcı tanı haritasıyla) | ☑ kaynak — `scripts/lib/case-selection.mjs` (`safeDistractors`, `DIFFERENTIALS`, `MIN_ASSESSMENT_OPTIONS`) |
+| Yanıt sızıntısı: dağıtılan pakette medya dosya adı/klasörü bulguyu ele vermez (içerik-hash'li opak adlar) | docs/03 §4(c) | ☑ kaynak — `scripts/lib/obfuscate-audio.mjs` (`obfuscateAudioInDist`, post-build) | ☑ `scripts/lib/obfuscate-images.mjs` (`obfuscateImagesInDist`, post-build) — denetimde Kermany (`bacteria`/`virus`), NLM (`_0`/`_1` = normal/TB) ve Commons adlarının bulguyu ele verdiği görüldü; paketlerde `assets/xray/r/<sha1-12>.webp`. BT kareleri yalnız öğrenmede olduğundan kapsam dışı |
+| Lokalizasyon: sabit yarıçaplı daire; isabet = kutu içi VE merkez mesafesi ≤ yarı köşegenin %60'ı; kutu alanı >%35 ise lokalizasyon sorusu yok; yanıt sonrası uzman kutusu + ıskalama oku | docs/04 §10 | uygulanamaz (şimdilik): Ausculta'da görsel üzerinde nokta işaretleme (lokalizasyon) soru tipi YOK — oskültasyon dinleme/tanıma tabanlı; ürün bu soru tipini eklerse kural UYGULANIR | ☑ kaynak — `src/core/geometry.ts` + `src/ui/FilmViewer.tsx` |
+| Kesit yığını görüntüleyici: önceden render pencereler, çift pencereleme yok, işaret kendi kesitinde + "işaret: kesit a–b", okuyucu puanları var ama malignite/olasılık yok, BT'den vaka/soru üretilmez | docs/04 §11 | uygulanamaz: Ausculta'da çok kesitli bir görüntüleyici (BT benzeri) YOK | ☑ kaynak — `src/ui/FilmViewer.tsx`, `src/ui/FilmInfoPanel.tsx`, `scripts/import-tcia.mjs` |
+| En iyi puan: mod başına kalıcı (localStorage, SCORM şeması dışı), mod kartında ve sonuç ekranında | docs/02 §10, docs/05 | ☑ eşdeğer VAR — `src/screens/ModeSelectScreen.tsx`/`ResultsScreen.tsx` `bestScore` kullanıyor (bkz. `git diff` çalışma kopyası) — Opaca ile AYNI desenle mi uygulandığı (ayrı localStorage anahtarı, SCORM dışı) TEK TEK doğrulanmalı ama satır bazlı kanıt bu tur incelemede TOPLANMADI | ☑ kaynak — `src/core/store.tsx` (`BEST_SCORE_KEY`, `loadBestScore`, `setResults` case) |
+| Üçüncü taraf içerik politikası: lisanssız açık kaynak içerik kopyalanmaz; gerekirse temiz oda + esin kaynağı bağlantısı; kullanıcı kararıyla uygulanmayabilir | docs/01 §8 | ☐ veri seti düzeyinde eşdeğer belgelenmemiş (Ausculta HLS-CMDS/CirCor lisanslarını kullanır ama Opaca'daki gibi AYRI bir `license.mjs` filtre betiği bulunamadı) — PROVENANCE.md gözden geçirilmeli | ☑ kaynak (veri seti ayağı) — `scripts/lib/license.mjs` (`LICENSE_OK`, `isAcceptableLicense`) |
+| Landing (v1.6): arka plan filigranı yok; kurum amblemi ürüne bağlı; ortam sesi ürün karakterine bağlı (zorunlu değil) | docs/01 §5.3, docs/02 §1 | ☑ filigran yok; amblem + kurum satırı korunuyor (`src/screens/StartScreen.tsx` `.hero-inst-top`) | ☑ filigran ve amblem yok (ürüne özel karar); kurum `Footer()`'da metinle var |
 
 ---
 
